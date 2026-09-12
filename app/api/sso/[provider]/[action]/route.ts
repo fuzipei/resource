@@ -1,4 +1,4 @@
-import {ApiError,PREFIX,body,database,digest,limit,nonce,origin,readCookie,result,secureCookie,settings,variables,type DB} from '../../../admin/core';
+import {ApiError,PREFIX,body,database,digest,limit,nonce,origin,readCookie,result,secureCookie,settings,variables,type DB} from '../../../../server/site-store';
 import {verifyInvite} from '../../../account/auth-security';
 import {authConfig} from '../../../account/auth-config';
 const providers:Record<string,{authorize:string;token:string;user:string;scope:string}>={

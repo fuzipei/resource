@@ -1,4 +1,5 @@
-ADMIN=music_owner
-PASSWORD=
-# Optional canonical origin for SSO
-SITE_URL=
+REDIS_URL=rediss://default:YOUR_PASSWORD@YOUR_DATABASE.upstash.io:6379
+TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
+REGISTRATION_INVITE_CODE=
+SITE_URL=https://your-project.vercel.app
