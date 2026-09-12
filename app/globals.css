@@ -372,3 +372,10 @@
  .immersive-player .floating-player:hover,.immersive-player .floating-player.player-pinned,.immersive-player .floating-player:has(:focus-visible){opacity:1}
 }
 @media(prefers-reduced-motion:reduce){.immersive-player .floating-player{transition:none}}
+
+.persistent-library[hidden]{display:none!important}
+.music-topbar .music-avatar.login-entry{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:auto;min-width:112px;height:44px;padding:0 24px;border-radius:24px;background:var(--primary);color:var(--on-primary,#fff);font-size:14px;font-weight:600;flex-shrink:0;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 16%,transparent)}
+.music-topbar .login-entry:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
+.personal-library>.playlist-import{margin-bottom:20px}
+.personal-library>.playlist-import>.import-progress{margin:12px 0}
+@media(max-width:600px){.music-topbar .music-avatar.login-entry{min-width:88px;padding:0 16px;gap:6px;height:44px}.import-progress-header{flex-wrap:wrap}.import-progress-header [role=status]{flex:1;min-width:160px}}

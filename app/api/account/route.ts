@@ -1,3 +1,4 @@
+import {ApiError,databaseUrl} from '../../server/site-store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 import {authConfig} from './auth-config';
@@ -20,7 +21,7 @@ async function handle(r:Request){
  let client:ReturnType<typeof createClient>|undefined;
  try{
  if(r.method==='POST'&&r.headers.get('origin')!==new URL(r.url).origin)throw new InputError('请求来源不匹配',403);
- const url=process.env.REDIS_URL;if(!url)throw Error('Missing database configuration');
+ const url=databaseUrl();
  client=createClient({url,socket:{connectTimeout:8000,reconnectStrategy:false}});await client.connect();const db=client;
  const token=cookie(r),sessionKey=token?PREFIX+'session:'+hash(token):'';const uid=sessionKey?await db.get(sessionKey):null;
  const read=async(id:string)=>{const raw=await db.get(PREFIX+'library:'+id);return {raw,data:{searches:[],...(raw?JSON.parse(raw):{favorites:[],recent:[],playlists:[]})}}};
@@ -64,7 +65,7 @@ async function handle(r:Request){
  else throw new InputError('未知操作');
  const ok=await db.eval("if (redis.call('GET',KEYS[1]) or '')~=ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]);return 1",{keys:[PREFIX+'library:'+uid],arguments:[raw||'',JSON.stringify(data)]});if(ok)return reply({library:data});
  }throw new InputError('记录正在更新，请重试',409);
- }catch(e){console.error("Account service:",e instanceof Error?e.message.replace(/rediss?:\/\/\S+/g,"[redacted]"):"Unknown error");return reply({error:(e instanceof InputError||e instanceof AuthSecurityError)?e.message:'账号服务暂时无法连接，请稍后重试'},(e instanceof InputError||e instanceof AuthSecurityError)?e.status:503)}finally{if(client?.isOpen)client.destroy()}
+ }catch(e){console.error("Account service:",e instanceof Error?e.message.replace(/rediss?:\/\/\S+/g,"[redacted]"):"Unknown error");return reply({error:(e instanceof InputError||e instanceof AuthSecurityError||e instanceof ApiError)?e.message:'账号服务暂时无法连接，请稍后重试'},(e instanceof InputError||e instanceof AuthSecurityError||e instanceof ApiError)?e.status:503)}finally{if(client?.isOpen)client.destroy()}
 }
 
 

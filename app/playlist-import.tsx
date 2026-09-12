@@ -35,9 +35,9 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
  }
  const percent=total?Math.floor(completed/total*100):0;
  const labels:Record<Phase,string>={idle:'',reading:'正在读取歌单…',matching:`正在匹配歌单 · ${percent}%`,ready:'匹配完成，请核对后保存',saving:'正在保存歌单…',cancelled:'已取消，可以重新导入',error:'导入未完成，请重试'};
- return <div className="playlist-import"><button className="primary-btn" disabled={phase==='saving'} onClick={()=>{if(open&&busy)cancel();setOpen(v=>!v)}}>导入外部歌单</button>{open&&<section className="import-panel" aria-busy={busy}>
-  <h3>导入外部歌单</h3>
-  {phase!=='idle'&&<div className="import-progress"><div className="import-progress-header"><span role="status">{labels[phase]}</span>{(phase==='reading'||phase==='matching')&&<button type="button" onClick={cancel}>取消导入</button>}</div><progress aria-label="歌单导入总进度" aria-valuetext={labels[phase]} max={100} value={phase==='reading'||phase==='saving'?undefined:percent}/></div>}
+ return <div className="playlist-import"><button className="primary-btn" disabled={phase==='saving'} onClick={()=>{setOpen(v=>!v)}}>{open?'收起导入':busy?'查看导入进度':'导入外部歌单'}</button>{phase!=='idle'&&<div className="import-progress"><div className="import-progress-header"><span role="status">{labels[phase]}</span>{!open&&<button type="button" onClick={()=>setOpen(true)}>{phase==='ready'?'查看结果':'展开'}</button>}{(phase==='reading'||phase==='matching')&&<button type="button" onClick={cancel}>取消导入</button>}</div><progress aria-label="歌单导入总进度" aria-valuetext={labels[phase]} max={100} value={phase==='reading'||phase==='saving'?undefined:percent}/></div>}{open&&<section className="import-panel" aria-busy={busy}>
+  <h3>导入外部歌单</h3><p>切换站内页面不会中断导入，完成匹配后回到这里核对并保存。</p>
+
   <p>网易云 · QQ 音乐 · 酷狗 · YouTube Music · Spotify</p>
   <form onSubmit={e=>{e.preventDefault();if(!busy&&url.trim())void prepare()}}><input aria-label="外部歌单链接" placeholder="粘贴公开歌单的完整链接" value={url} disabled={busy} maxLength={2000} onChange={e=>setUrl(e.target.value)}/><button disabled={busy||!url.trim()} className="primary-btn">读取并匹配</button></form>
   <label className="import-file">或导入 CSV / JSON 文件<input type="file" accept=".csv,.json,text/csv,application/json" disabled={busy} onChange={e=>{const f=e.target.files?.[0];if(f)void prepare(f);e.target.value=''}}/></label>
