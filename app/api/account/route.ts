@@ -1,4 +1,3 @@
-import {serverDefaults} from '../../server-defaults';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 import {authConfig} from './auth-config';
@@ -21,7 +20,7 @@ async function handle(r:Request){
  let client:ReturnType<typeof createClient>|undefined;
  try{
  if(r.method==='POST'&&r.headers.get('origin')!==new URL(r.url).origin)throw new InputError('请求来源不匹配',403);
- const url=process.env.REDIS_URL||serverDefaults.REDIS_URL;if(!url)throw Error('Missing database configuration');
+ const url=process.env.REDIS_URL;if(!url)throw Error('Missing database configuration');
  client=createClient({url,socket:{connectTimeout:8000,reconnectStrategy:false}});await client.connect();const db=client;
  const token=cookie(r),sessionKey=token?PREFIX+'session:'+hash(token):'';const uid=sessionKey?await db.get(sessionKey):null;
  const read=async(id:string)=>{const raw=await db.get(PREFIX+'library:'+id);return {raw,data:{searches:[],...(raw?JSON.parse(raw):{favorites:[],recent:[],playlists:[]})}}};
@@ -36,7 +35,7 @@ async function handle(r:Request){
  if(action==='login'||action==='register'){
  const username=String(body.username||'').trim().toLowerCase(),password=String(body.password||'');
  if(!/^[a-z0-9_]{3,32}$/.test(username)||password.length<10||password.length>128)throw new InputError('账号须为 3–32 位字母、数字或下划线，密码须为 10–128 位');
- const ip=r.headers.get('cf-connecting-ip')||'local';const ipLimit=PREFIX+'ip-limit:'+hash(ip);const ipCount=await db.incr(ipLimit);if(ipCount===1)await db.expire(ipLimit,600);if(ipCount>100)throw new InputError('尝试过于频繁，请十分钟后重试',429);const throttle=PREFIX+'limit:'+hash(ip+username);const attempts=await db.incr(throttle);if(attempts===1)await db.expire(throttle,600);if(attempts>20)throw new InputError('尝试过于频繁，请十分钟后重试',429);
+ const ip=r.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local';const ipLimit=PREFIX+'ip-limit:'+hash(ip);const ipCount=await db.incr(ipLimit);if(ipCount===1)await db.expire(ipLimit,600);if(ipCount>100)throw new InputError('尝试过于频繁，请十分钟后重试',429);const throttle=PREFIX+'limit:'+hash(ip+username);const attempts=await db.incr(throttle);if(attempts===1)await db.expire(throttle,600);if(attempts>20)throw new InputError('尝试过于频繁，请十分钟后重试',429);
  const security=await authConfig();await verifyAuthChallenge(security,r,action,body.turnstileToken);if(action==='register')verifyInvite(security.inviteCode,body.inviteCode);
  const index=PREFIX+'username:'+username;let id=await db.get(index);let account=id?JSON.parse(await db.get(PREFIX+'user:'+id)||'null'):null;
  if(action==='register'){

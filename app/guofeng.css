@@ -1,0 +1,62 @@
+[data-skin="guofeng-ink"]{--skin-ink:#52645b;--skin-tint:#f1f1e9;--skin-night:#111f21;--skin-bright:#bac5b6;--scene:url("/skins/guofeng-ink.svg");--guofeng-verse:"听风见山，亦见你"}
+[data-skin="guofeng-ink"][data-theme=dark]{--scene:url("/skins/guofeng-ink-dark.svg")}
+[data-skin="guofeng-zen"]{--skin-ink:#526b83;--skin-tint:#e0e7ed;--skin-night:#0d192b;--skin-bright:#d0d8df;--scene:url("/skins/guofeng-zen.svg");--guofeng-verse:"月下听歌，心自安然"}
+[data-skin="guofeng-zen"][data-theme=dark]{--scene:url("/skins/guofeng-zen-dark.svg")}
+[data-skin="guofeng-jade"]{--skin-ink:#437463;--skin-tint:#e5efe7;--skin-night:#102820;--skin-bright:#a3cdb7;--scene:url("/skins/guofeng-jade.svg");--guofeng-verse:"竹影摇风，心之所向"}
+[data-skin="guofeng-jade"][data-theme=dark]{--scene:url("/skins/guofeng-jade-dark.svg")}
+[data-skin="guofeng-changan"]{--skin-ink:#96533e;--skin-tint:#f1dfcf;--skin-night:#30202b;--skin-bright:#f1ba8d;--scene:url("/skins/guofeng-changan.svg");--guofeng-verse:"长安灯火，心之所许"}
+[data-skin="guofeng-changan"][data-theme=dark]{--scene:url("/skins/guofeng-changan-dark.svg")}
+[data-skin="guofeng-porcelain"]{--skin-ink:#4b7794;--skin-tint:#e6f3f8;--skin-night:#142834;--skin-bright:#b2d9ed;--scene:url("/skins/guofeng-porcelain.svg");--guofeng-verse:"一曲清音，山河共白"}
+[data-skin="guofeng-porcelain"][data-theme=dark]{--scene:url("/skins/guofeng-porcelain-dark.svg")}
+[data-skin="guofeng-obsidian"]{--skin-ink:#8c7037;--skin-tint:#eee7d7;--skin-night:#151613;--skin-bright:#d9bc7c;--scene:url("/skins/guofeng-obsidian.svg");--guofeng-verse:"音乐无界，心有所响"}
+[data-skin="guofeng-obsidian"][data-theme=dark]{--scene:url("/skins/guofeng-obsidian-dark.svg")}
+
+[data-skin-category=guofeng] .music-app:before{filter:none;transform:none;opacity:1;background-position:center bottom}
+[data-skin-category=guofeng] .music-app:after{content:var(--guofeng-verse);position:fixed;right:22px;top:28%;writing-mode:vertical-rl;font-family:"STKaiti","KaiTi","Noto Serif SC",serif;letter-spacing:.35em;font-size:15px;line-height:1.7;color:var(--primary);opacity:.65;pointer-events:none;z-index:-1}
+[data-skin-category=guofeng] .music-brand b,[data-skin-category=guofeng] .music-topbar h1,[data-skin-category=guofeng] .settings-heading h2{font-family:"STSong","SimSun","Noto Serif SC",serif;letter-spacing:.08em}
+[data-skin-category=guofeng] .music-sidebar{border-radius:12px;background:color-mix(in srgb,var(--background) 58%,transparent);backdrop-filter:blur(5px);box-shadow:none}
+[data-skin-category=guofeng] .music-sidebar nav button.active{background:color-mix(in srgb,var(--primary) 18%,transparent);color:var(--foreground);box-shadow:none;border-radius:8px}
+[data-skin-category=guofeng] .music-sidebar nav button.active .nav-dot{background:var(--primary)}
+[data-skin-category=guofeng] .single-song-list{background:color-mix(in srgb,var(--background) 48%,transparent);backdrop-filter:blur(2px)}
+[data-skin-category=guofeng] .floating-player{background:color-mix(in srgb,var(--background) 76%,transparent);backdrop-filter:blur(12px);border-radius:12px}
+[data-skin-category=guofeng] .settings-block{background:color-mix(in srgb,var(--background) 88%,transparent)}
+[data-skin-category=guofeng] .lyrics-panel{background:radial-gradient(ellipse,color-mix(in srgb,var(--background) 68%,transparent),transparent 80%)}
+.skin-categories{flex-wrap:wrap}
+.guofeng-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.guofeng-grid .skin-card-title{font-family:"STSong","SimSun",serif;font-size:16px;letter-spacing:.1em}
+.guofeng-grid .skin-preview.scene-preview{height:auto;aspect-ratio:2.25;background-size:100% 100%}
+@media(max-width:1150px){.guofeng-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.guofeng-grid{grid-template-columns:1fr}.guofeng-grid .skin-preview-pair{grid-template-columns:1fr 1fr}.guofeng-grid .skin-preview.scene-preview{height:135px}[data-skin-category=guofeng] .music-app:before{background-size:auto 100%;background-position:70% bottom;opacity:.6}[data-skin-category=guofeng] .music-app:after{display:none}.skin-categories button{min-width:80px}}
+
+/* Quiet surfaces and a single generous preview keep the landscape secondary. */
+[data-skin-category=guofeng] .music-app{background:var(--background)}
+[data-skin-category=guofeng] .music-app:after{font-size:12px;opacity:.38;right:18px;top:32%;letter-spacing:.45em}
+[data-skin-category=guofeng] .music-sidebar{background:color-mix(in srgb,var(--background) 46%,transparent);border:0;border-right:1px solid color-mix(in srgb,var(--primary) 8%,transparent);border-radius:0;backdrop-filter:none;box-shadow:none}
+[data-skin-category=guofeng] .music-brand>span{background:transparent;color:var(--foreground);border:1px solid var(--border);border-radius:50%}
+[data-skin-category=guofeng] .music-brand b{font-size:21px;letter-spacing:.12em}
+[data-skin-category=guofeng] .music-sidebar nav button.active{background:linear-gradient(90deg,color-mix(in srgb,var(--primary) 16%,transparent),transparent);border-radius:6px;font-weight:500}
+[data-skin-category=guofeng] .settings-entry{border:0;background:transparent}
+[data-skin-category=guofeng] .single-song-list{background:transparent;backdrop-filter:none;border-radius:0}
+[data-skin-category=guofeng] .music-row{border-color:color-mix(in srgb,var(--primary) 7%,transparent)}
+[data-skin-category=guofeng] .floating-player{background:color-mix(in srgb,var(--background) 86%,transparent);border:0;border-top:1px solid color-mix(in srgb,var(--primary) 8%,transparent);box-shadow:none;backdrop-filter:blur(8px);border-radius:8px}
+[data-skin-category=guofeng] .settings-block{border:0;border-radius:0;background:color-mix(in srgb,var(--background) 90%,transparent);backdrop-filter:none;padding:24px 8px}
+[data-skin-category=guofeng] .lyrics-panel{background:none}
+.guofeng-grid{gap:26px}
+.guofeng-grid .skin-card{background:transparent;border:1px solid transparent;border-radius:8px;padding:0 0 10px;box-shadow:none}
+.guofeng-grid .skin-card[aria-pressed=true]{border-color:color-mix(in srgb,var(--primary) 45%,transparent);box-shadow:none}
+.guofeng-grid .skin-preview-pair{display:block}
+.guofeng-grid .scene-preview.dark{display:none}
+[data-theme=dark] .guofeng-grid .scene-preview.light{display:none}
+[data-theme=dark] .guofeng-grid .scene-preview.dark{display:flex}
+.guofeng-grid .skin-preview-nav{width:23%;background:transparent;border-right:1px solid #8881;backdrop-filter:none;padding:15px 10px}
+.guofeng-grid .skin-preview-content{padding:15px 16px}
+.guofeng-grid .skin-preview-nav i{height:2px;opacity:.15}
+.guofeng-grid .skin-preview-nav .chosen{height:10px;opacity:.2}
+.guofeng-grid .preview-row{margin-top:13px}
+.guofeng-grid .preview-row em{opacity:.15;height:2px}
+.guofeng-grid .preview-player{background:#ffffff28;font-size:7px;letter-spacing:1px;margin-top:15px}
+.guofeng-grid .preview-night{display:none}
+.guofeng-grid .skin-card-title{padding:16px 12px 7px;font-size:16px;font-weight:500}
+.guofeng-grid .skin-swatches{display:none}
+.guofeng-grid .skin-description{font-size:12px;letter-spacing:.06em}
+@media(max-width:600px){.guofeng-grid{gap:20px}.guofeng-grid .skin-preview.scene-preview{height:auto;aspect-ratio:2.1}.guofeng-grid .preview-row{margin-top:8px}.guofeng-grid .preview-player{margin-top:9px}[data-skin-category=guofeng] .music-app:before{background-position:right bottom;opacity:.55}}
