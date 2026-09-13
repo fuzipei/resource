@@ -1,4 +1,4 @@
-﻿export type ExternalTrack={title:string;artist:string;album?:string;durationMs?:number};
+﻿export type ExternalTrack={title:string;artist:string;album?:string;durationMs?:number;catalogId?:string};
 export type ExternalPlaylist={name:string;tracks:ExternalTrack[];source:string;warning?:string;remainingIds?:string[];totalCount?:number};
 export const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]/gu,'');
 const artists=(s:string)=>s.normalize('NFKC').split(/\s*(?:、|,|，|;|；|\s&\s|\s\/\s)\s*/).map(normalize).filter(Boolean).sort().join('|');
@@ -12,4 +12,4 @@ export function parseTrackFile(text:string):ExternalTrack[]{
  const ti=header.findIndex(x=>['title','track name','song name','name','歌曲','歌曲名称','歌名'].includes(x)),ai=header.findIndex(x=>['artist','artists','artist name(s)','artist name','歌手','艺人'].includes(x));
  if(ti<0||ai<0)throw Error('文件需包含 title（歌曲名称）和 artist（歌手）列');return validateTracks(rows.filter(r=>r.some(x=>x.trim())).map(r=>({title:r[ti],artist:r[ai]})))
 }
-export function validateTracks(list:any[]):ExternalTrack[]{if(!Array.isArray(list)||!list.length)throw Error('没有读取到歌曲');return list.map((s,i)=>{if(typeof s?.title!=='string'||!s.title.trim()||typeof s.artist!=='string'||!s.artist.trim())throw Error(`第 ${i+1} 首缺少歌曲名称或歌手`);return {title:s.title.trim().slice(0,300),artist:s.artist.trim().slice(0,300),album:typeof s.album==='string'?s.album.slice(0,300):'',durationMs:Number(s.durationMs)||0}})}
+export function validateTracks(list:any[],allowCatalog=false):ExternalTrack[]{if(!Array.isArray(list)||!list.length)throw Error('没有读取到歌曲');return list.map((s,i)=>{if(typeof s?.title!=='string'||!s.title.trim()||typeof s.artist!=='string'||!s.artist.trim())throw Error(`第 ${i+1} 首缺少歌曲名称或歌手`);return {title:s.title.trim().slice(0,300),artist:s.artist.trim().slice(0,300),album:typeof s.album==='string'?s.album.slice(0,300):'',durationMs:Number(s.durationMs)||0,...(allowCatalog&&typeof s.catalogId==='string'&&/^(wy_\d{1,18}|qq_[a-zA-Z0-9]{10,30})$/.test(s.catalogId)?{catalogId:s.catalogId}:{})}})}

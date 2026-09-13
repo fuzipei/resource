@@ -1,4 +1,5 @@
 'use client';
+import {importBatch} from './playlist-import/upload';
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {SsoButtons} from './site-features';
 import {LOGIN_CHALLENGE_REQUIRED,REGISTER_CHALLENGE_REQUIRED} from './auth-policy';
@@ -23,7 +24,10 @@ export function useAccount(){const [user,setUser]=useState<{id:string;name:strin
  async function authenticate(body:unknown){setBusy(true);setError('');try{await chain.current;const d=await request(body);identity.current=d.user?.id||null;setUser(d.user);setLibrary(d.library||guest());setOpen(false);setAdding(null)}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
  function saveImport(body:Record<string,unknown>,onProgress?:(count:number)=>void){const owner=identity.current;const task=chain.current.catch(()=>{}).then(async()=>{
  const songs=body.songs as Song[];if(!Array.isArray(songs)||!songs.length)throw Error('没有可保存的歌曲');
- for(let offset=0;offset<songs.length;offset+=50){if(!owner||identity.current!==owner)throw Error('账号已变更，请重新导入');const d=await request({...body,songs:songs.slice(offset,offset+50),offset,total:songs.length});if(identity.current!==owner)throw Error('账号已变更，请重新导入');if(d.library)setLibrary(d.library);onProgress?.(Math.min(offset+50,songs.length))}
+ const controller=new AbortController(),last=Math.floor((songs.length-1)/50)*50;let next=0,completed=0;
+ async function upload(offset:number){if(!owner||identity.current!==owner)throw Error('账号已变更，请重新导入');const batch=songs.slice(offset,offset+50),d=await request(importBatch(body,songs,offset),controller.signal);if(identity.current!==owner)throw Error('账号已变更，请重新导入');if(d.library)setLibrary(d.library);completed+=batch.length;onProgress?.(completed)}
+ try{await Promise.all(Array.from({length:3},async()=>{while(next<last){const offset=next;next+=50;await upload(offset)}}));await upload(last)}catch(error){controller.abort();throw error}
+
  });chain.current=task.catch(()=>{});return task}
 
  return {saveImport,user,library,ready,error,setError,open,setOpen,adding,setAdding,busy,authenticate,mutate,like,record,searchHistory};}

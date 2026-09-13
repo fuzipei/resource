@@ -24,14 +24,17 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
    const data:ExternalPlaylist=file?{name:file.name.replace(/\.(csv|json)$/i,''),source:'文件导入',tracks:parseTrackFile(await file.text())}:await request({action:'import-read',url},controller.signal);
    if(task!==run.current)return;
    const remaining=data.remainingIds||[];setTotal(data.totalCount||data.tracks.length);setCompleted(data.tracks.length);
-   for(let offset=0;offset<remaining.length;offset+=200){const page=await request({action:'import-details',ids:remaining.slice(offset,offset+200)},controller.signal);if(task!==run.current)return;data.tracks.push(...page.tracks);setCompleted(data.tracks.length)}
+   const pages:typeof data.tracks[]=[];let nextPage=0,readCount=data.tracks.length;
+   await Promise.all(Array.from({length:2},async()=>{while(nextPage*200<remaining.length){const index=nextPage++;const page=await request({action:'import-details',ids:remaining.slice(index*200,(index+1)*200)},controller.signal);if(task!==run.current)return;if(!Array.isArray(page.tracks))throw Error('歌曲资料返回不完整，请重试');pages[index]=page.tracks;readCount+=page.tracks.length;setCompleted(readCount)}}));
+   if(task!==run.current)return;for(const page of pages)data.tracks.push(...page);
+
    if(data.totalCount&&data.tracks.length<data.totalCount)data.warning=`平台实际返回 ${data.tracks.length} / ${data.totalCount} 首，部分歌曲可能不可访问，请核对。`;
    delete data.remainingIds;
-   data.tracks=validateTracks(data.tracks);setTotal(data.tracks.length);setCompleted(0);setPhase('matching');
+   data.tracks=validateTracks(data.tracks,!file);setTotal(data.tracks.length);setCompleted(0);setPhase('matching');
    const output=await matchPlaylist(data.tracks,async(tracks,signal)=>(await request({action:'import-match',tracks},signal)).items,controller.signal,count=>{if(task===run.current)setCompleted(count)});
    if(task!==run.current)return;
    setList(data);setSongs(output);setPhase('ready');
-  }catch(e){if(task===run.current){setPhase('error');setError(e instanceof Error?e.message:'导入失败，请稍后重试')}}
+  }catch(e){controller.abort();if(task===run.current){setPhase('error');setError(e instanceof Error?e.message:'导入失败，请稍后重试')}}
  }
  async function save(){
   if(!list||busy||saving.current||songs.length!==list.tracks.length||!songs.length||list.warning&&!confirmed)return;
