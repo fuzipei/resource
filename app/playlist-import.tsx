@@ -1,4 +1,5 @@
 'use client';
+import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {useEffect,useRef,useState} from 'react';
 import {parseTrackFile,validateTracks,type ExternalPlaylist} from './playlist-import/model';
 import {matchPlaylist} from './playlist-import/match';
@@ -10,7 +11,7 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
  const run=useRef(0),abort=useRef<AbortController|null>(null),saving=useRef(false);
  const busy=phase==='reading'||phase==='matching'||phase==='saving';
  useEffect(()=>{setOpen(false);setUrl('');setList(null);setSongs([]);setPhase('idle');setError('');setCompleted(0);setTotal(0);saving.current=false;return()=>{run.current++;abort.current?.abort()}},[owner]);
- async function request(body:unknown,signal:AbortSignal){const r=await fetch('/api/account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});const j:any=await r.json();if(!r.ok)throw Error(j.error||'导入失败，请稍后重试');return j}
+ async function request(body:unknown,signal:AbortSignal){const r=await fetchJsonWithTimeout('/api/account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal},60000);const j:any=r.data;if(!r.ok)throw Error(j.error||'导入失败，请稍后重试');return j}
  function cancel(){run.current++;abort.current?.abort();setList(null);setSongs([]);setPhase('cancelled');setError('')}
  async function prepare(file?:File){
   if(saving.current)return;

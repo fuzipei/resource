@@ -1,3 +1,4 @@
+import {catalogTracks} from '../music/catalog-tracks';
 import {entityName,splitArtists,type MusicEntity,type EntityKind} from '../../music-entity-types';
 import type {Song} from '../../music-types';
 class EntityError extends Error{constructor(message:string,public status=503){super(message)}}
@@ -13,7 +14,7 @@ async function resolve(p:URLSearchParams,kind:EntityKind,signal:AbortSignal){
  const source=p.get('songId')||'',title=p.get('title')||'',artist=p.get('artist')||'',albumName=p.get('album')||'',name=p.get('name')||'';
  if(!title||!artist||!name||[source,title,artist,albumName,name].some(v=>v.length>300))throw new EntityError('缺少歌曲资料',400);
  let tracks:any[]=[];
- if(/^wy_\d{1,18}$/.test(source)){const j=await json('/api/song/detail/?'+new URLSearchParams({ids:JSON.stringify([source.slice(3)])}),signal);tracks=j.songs||[]}
+ if(/^wy_\d{1,18}$/.test(source)){tracks=await catalogTracks([source.slice(3)],signal)}
  else{const j=await json('/api/search/get/web?'+new URLSearchParams({s:title+' '+artist,type:'1',limit:'30'}),signal);tracks=j.result?.songs||[]}
  const matches=tracks.filter(t=>entityName(t.name||'')===entityName(title)&&splitArtists(artist).every(a=>artists(t).some((b:any)=>entityName(b.name||'')===entityName(a))));
  matches.sort((a,b)=>Number(entityName(album(b).name||'')===entityName(albumName))-Number(entityName(album(a).name||'')===entityName(albumName)));

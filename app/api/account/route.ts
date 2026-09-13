@@ -1,3 +1,5 @@
+import {readRequestBody,RequestBodyError} from './request-body';
+import {databaseUrl,ApiError} from '../../server/site-store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 import {authConfig} from './auth-config';
@@ -8,7 +10,9 @@ import {searchAt38} from '../music/at38';
 import {cleanSearch,updateSearches} from '../../search-history';
 import {createClient} from './redis';
 
-import {scryptSync,randomBytes,timingSafeEqual,createHash} from 'node:crypto';
+import {scrypt,randomBytes,timingSafeEqual,createHash} from 'node:crypto';
+import {promisify} from 'node:util';
+const deriveKey=promisify(scrypt);
 const PREFIX='resonance:account:v1:', TTL=60*60*24*30;
 const hash=(v:string)=>createHash('sha256').update(v).digest('hex');
 const cookie=(r:Request)=>r.headers.get('cookie')?.match(/(?:^|;\s*)resonance_session=([a-f0-9]{64})(?:;|$)/)?.[1];
@@ -20,16 +24,16 @@ async function handle(r:Request){
  let client:ReturnType<typeof createClient>|undefined;
  try{
  if(r.method==='POST'&&r.headers.get('origin')!==new URL(r.url).origin)throw new InputError('请求来源不匹配',403);
- const url=process.env.REDIS_URL;if(!url)throw Error('Missing database configuration');
+ const body=r.method==='POST'?await readRequestBody(r):null;
+ const url=databaseUrl();
  client=createClient({url,socket:{connectTimeout:8000,reconnectStrategy:false}});await client.connect();const db=client;
  const token=cookie(r),sessionKey=token?PREFIX+'session:'+hash(token):'';const uid=sessionKey?await db.get(sessionKey):null;
- const read=async(id:string)=>{const raw=await db.get(PREFIX+'library:'+id);return {raw,data:{searches:[],...(raw?JSON.parse(raw):{favorites:[],recent:[],playlists:[]})}}};
+ const read=async(id:string)=>{const raw=await db.get(PREFIX+'library:'+id);return {raw,data:{searches:[],favorites:[],recent:[],playlists:[],...(raw?JSON.parse(raw):{})}}};
  const user=uid?JSON.parse(await db.get(PREFIX+'user:'+uid)||'null'):null;
  const revoked=uid?Number(await db.get(PREFIX+'revoke:'+uid)||0):0;const issued=sessionKey?Number(await db.get(sessionKey+':issued')||0):0;if(user&&(user.disabled||revoked&&issued<=revoked)){if(sessionKey)await db.del(sessionKey);if(r.method==='GET')return reply({user:null,library:null});throw new InputError('Account access revoked',401)}
  const safe=user?{id:uid,username:user.username,name:user.name}:null;
  if(r.method==='GET')return reply({user:safe,library:uid&&user?(await read(uid)).data:null});
- if(Number(r.headers.get('content-length')||0)>600000)throw new InputError('请求过大',413);
- const text=await r.text();if(text.length>600000)throw new InputError('请求过大',413);let body;try{body=JSON.parse(text)}catch{throw new InputError('请求格式无效')}if(!body||typeof body!=='object')throw new InputError('请求格式无效');const action=body.action;
+ const action=body.action;
  const setCookie=(value:string,age=TTL)=>`resonance_session=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${age}${new URL(r.url).protocol==='https:'?'; Secure':''}`;
  if(action==='logout'){if(sessionKey)await db.del(sessionKey);return reply({user:null},200,{'Set-Cookie':setCookie('',0)})}
  if(action==='login'||action==='register'){
@@ -40,9 +44,9 @@ async function handle(r:Request){
  const index=PREFIX+'username:'+username;let id=await db.get(index);let account=id?JSON.parse(await db.get(PREFIX+'user:'+id)||'null'):null;
  if(action==='register'){
  if(id)throw new InputError('这个账号已被使用',409);
- id=randomBytes(16).toString('hex');const salt=randomBytes(16).toString('hex');account={createdAt:Date.now(),username,name:String(body.name||username).trim().slice(0,40)||username,salt,password:scryptSync(password,salt,64).toString('hex')};
+ id=randomBytes(16).toString('hex');const salt=randomBytes(16).toString('hex');account={createdAt:Date.now(),username,name:String(body.name||username).trim().slice(0,40)||username,salt,password:((await deriveKey(password,salt,64)) as Buffer).toString('hex')};
  const created=await db.eval("if redis.call('EXISTS',KEYS[1])==1 then return 0 end redis.call('SET',KEYS[1],ARGV[1]);redis.call('SET',KEYS[2],ARGV[2]);return 1",{keys:[index,PREFIX+'user:'+id],arguments:[id,JSON.stringify(account)]});if(!created)throw new InputError('这个账号已被使用',409);
- }else{const actual=scryptSync(password,account?.salt||'missing-account-salt',64);if(!account||account.disabled||!account.password||!timingSafeEqual(actual,Buffer.from(account.password,'hex')))throw new InputError('账号或密码不正确',401)}
+ }else{const actual=(await deriveKey(password,account?.salt||'missing-account-salt',64)) as Buffer;if(!account||account.disabled||!account.password||!/^[a-f0-9]{128}$/i.test(account.password)||!timingSafeEqual(actual,Buffer.from(account.password,'hex')))throw new InputError('账号或密码不正确',401)}
  if(account.disabled)throw new InputError('Account disabled',403);await db.eval("local v=redis.call('GET',KEYS[1]);if not v then return 0 end local u=cjson.decode(v);u.lastLogin=tonumber(ARGV[1]);redis.call('SET',KEYS[1],cjson.encode(u));return 1",{keys:[PREFIX+'user:'+id],arguments:[String(Date.now())]});const next=randomBytes(32).toString('hex');await db.set(PREFIX+'session:'+hash(next),id!,{EX:TTL});await db.set(PREFIX+'session:'+hash(next)+':issued',String(Date.now()),{EX:TTL});if(sessionKey)await db.del(sessionKey);
  return reply({user:{id,username,name:account.name},library:(await read(id!)).data},200,{'Set-Cookie':setCookie(next)});
  }
@@ -64,7 +68,7 @@ async function handle(r:Request){
  else throw new InputError('未知操作');
  const ok=await db.eval("if (redis.call('GET',KEYS[1]) or '')~=ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]);return 1",{keys:[PREFIX+'library:'+uid],arguments:[raw||'',JSON.stringify(data)]});if(ok)return reply({library:data});
  }throw new InputError('记录正在更新，请重试',409);
- }catch(e){console.error("Account service:",e instanceof Error?e.message.replace(/rediss?:\/\/\S+/g,"[redacted]"):"Unknown error");return reply({error:(e instanceof InputError||e instanceof AuthSecurityError)?e.message:'账号服务暂时无法连接，请稍后重试'},(e instanceof InputError||e instanceof AuthSecurityError)?e.status:503)}finally{if(client?.isOpen)client.destroy()}
+ }catch(e){console.error("Account service:",e instanceof Error?e.message.replace(/rediss?:\/\/\S+/g,"[redacted]"):"Unknown error");return reply({error:(e instanceof RequestBodyError||e instanceof InputError||e instanceof AuthSecurityError||e instanceof ApiError)?e.message:'账号服务暂时无法连接，请稍后重试'},(e instanceof RequestBodyError||e instanceof InputError||e instanceof AuthSecurityError||e instanceof ApiError)?e.status:503)}finally{if(client?.isOpen)client.destroy()}
 }
 
 

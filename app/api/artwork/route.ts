@@ -1,3 +1,4 @@
+import {catalogTracks} from '../music/catalog-tracks';
 type Track={id:number;name:string;artists:{name:string}[];album:{name:string;picUrl?:string}};
 const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 const artists=(s:string)=>s.split(/\s*[/、;&]\s*/).map(normalize).filter(Boolean);
@@ -6,7 +7,7 @@ const pending=new Map<string,Promise<string>>();
 function matches(t:Track,title:string,artist:string){const names=(t.artists||[]).map(a=>normalize(a.name));return normalize(t.name)===normalize(title)&&artists(artist).every(a=>names.includes(a))}
 function imageUrl(value?:string){try{const u=new URL(value||'');if(!/^p\d+\.music\.126\.net$/.test(u.hostname)||!['http:','https:'].includes(u.protocol))return '';u.protocol='https:';return u.href}catch{return ''}}
 async function json(path:string){const r=await fetch('https://music.163.com'+path,{signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('Artwork unavailable');return r.json() as Promise<any>}
-async function detail(id:string){const j=await json('/api/song/detail/?'+new URLSearchParams({id,ids:JSON.stringify([Number(id)])}));return j.songs?.[0] as Track|undefined}
+async function detail(id:string){const t=(await catalogTracks([id]))[0];return t?{...t,artists:t.artists||t.ar||[],album:t.album||t.al||{}} as Track:undefined}
 async function qqArtwork(id:string,title:string,artist:string){
  const r=await fetch('https://c.y.qq.com/v8/fcg-bin/fcg_play_single_song.fcg?'+new URLSearchParams({songmid:id,tpl:'yqq_song_detail',format:'json'}),{signal:AbortSignal.timeout(8000)});
  if(!r.ok)return '';const j=await r.json() as any;
