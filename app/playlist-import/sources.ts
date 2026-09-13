@@ -1,8 +1,10 @@
+import {catalogTracks} from '../api/music/catalog-tracks';
 ﻿import type {ExternalPlaylist,ExternalTrack} from './model';
 async function get(url:string,options:RequestInit={}){const r=await fetch(url,{...options,redirect:'manual',signal:AbortSignal.timeout(16000),headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json,text/html',...options.headers}});if(r.status>=300&&r.status<400){await r.body?.cancel();throw Error('平台跳转到了其他页面，请确认歌单公开并复制完整链接，或使用文件导入')}if(!r.ok)throw Error('平台暂时无法读取此歌单，请检查是否公开，或使用 CSV / JSON 文件导入');const reader=r.body?.getReader();if(!reader)throw Error('平台没有返回内容');let text='',size=0;const decoder=new TextDecoder();try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>5000000)throw Error('歌单页面过大，请使用文件导入');text+=decoder.decode(value,{stream:true})}}finally{await reader.cancel()}return text}
 function jsonAt(html:string,marker:string){let start=html.indexOf(marker);if(start<0)return null;start=html.indexOf('{',start+marker.length);if(start<0)return null;let depth=0,quote=false,escape=false;for(let i=start;i<html.length;i++){const c=html[i];if(quote){if(escape)escape=false;else if(c==='\\')escape=true;else if(c==='"')quote=false}else if(c==='"')quote=true;else if(c==='{')depth++;else if(c==='}'&&--depth===0){try{return JSON.parse(html.slice(start,i+1))}catch{return null}}}return null}
 function walk(value:any,visit:(v:any)=>void){if(!value||typeof value!=='object')return;visit(value);for(const v of Object.values(value))if(v&&typeof v==='object')walk(v,visit)}
 const txt=(v:any)=>v?.simpleText||v?.runs?.map((x:any)=>x.text||'').join('')||'';
+export async function readNeteaseTracks(ids:string[]):Promise<ExternalTrack[]>{if(!Array.isArray(ids)||!ids.length||ids.length>200||ids.some(id=>typeof id!=='string'||!/^\d{1,18}$/.test(id)))throw Error('歌曲资料批次无效');return (await catalogTracks(ids)).map(t=>({title:t.name,artist:(t.ar||t.artists||[]).map((a:any)=>a.name).join(' / '),album:(t.al||t.album)?.name,durationMs:t.dt||t.duration}))}
 export async function readExternal(input:string):Promise<ExternalPlaylist>{
  const raw=input.match(/https?:\/\/[^\s<>"，。]+/)?.[0];if(!raw)throw Error('请粘贴完整歌单链接');let u:URL;try{u=new URL(raw)}catch{throw Error('歌单链接无效')}
  if(u.protocol!=='https:'||u.username||u.password||u.port)throw Error('请使用平台官方 HTTPS 歌单链接');
@@ -10,7 +12,15 @@ export async function readExternal(input:string):Promise<ExternalPlaylist>{
  if(['music.163.com','y.music.163.com'].includes(host)){
  const id=u.searchParams.get('id')||u.hash.match(/[?&]id=(\d+)/)?.[1]||u.pathname.match(/playlist\/(\d+)/)?.[1];if(!id||!/^\d+$/.test(id))throw Error('请使用网易云 playlist?id=… 歌单链接');
  const j=JSON.parse(await get('https://music.163.com/api/v6/playlist/detail?id='+id+'&n=500&s=0'));const p=j.playlist||j.result;if(!p)throw Error('网易云歌单不可访问，请使用公开歌单或文件导入');name=p.name;source='网易云音乐';
- const ids=(p.trackIds||[]).map((x:any)=>x.id).filter((x:any)=>Number.isSafeInteger(x)).slice(0,500);if(ids.length>(p.tracks||[]).length){const details:any[]=[];for(let i=0;i<ids.length;i+=200){const d=JSON.parse(await get('https://music.163.com/api/song/detail?ids='+encodeURIComponent(JSON.stringify(ids.slice(i,i+200)))));details.push(...(d.songs||[]))}const byId=new Map(details.map(t=>[t.id,t]));p.tracks=ids.map((id:number)=>byId.get(id)).filter(Boolean)}tracks=(p.tracks||[]).map((t:any)=>({title:t.name,artist:(t.ar||t.artists||[]).map((a:any)=>a.name).join(' / '),album:(t.al||t.album)?.name,durationMs:t.dt||t.duration}));if((p.trackCount||p.trackIds?.length||0)>tracks.length)warning=`平台仅返回 ${tracks.length} 首，共 ${p.trackCount||p.trackIds.length} 首；请用导出文件补全后再导入。`;
+ const ids=(p.trackIds||[]).map((x:any)=>String(x.id)).filter((id:string)=>/^\d{1,18}$/.test(id));
+ const first=ids.slice(0,200);const supplied=new Map((p.tracks||[]).map((t:any)=>[String(t.id),t]));
+ const initial=first.length?first.map((id:string)=>supplied.get(id)).filter(Boolean):p.tracks||[];
+ tracks=initial.map((t:any)=>({title:t.name,artist:(t.ar||t.artists||[]).map((a:any)=>a.name).join(' / '),album:(t.al||t.album)?.name,durationMs:t.dt||t.duration}));
+ if(first.length&&initial.length<first.length)tracks=await readNeteaseTracks(first);
+ const totalCount=Number(p.trackCount)||ids.length||tracks.length;
+ if(ids.length>200)return {name:String(name).slice(0,60),source,tracks,remainingIds:ids.slice(200),totalCount};
+ if(totalCount>tracks.length)warning=`平台实际返回 ${tracks.length} / ${totalCount} 首；部分歌曲可能不可访问，请核对。`;
+
  }else if(['y.qq.com','i.y.qq.com'].includes(host)){
  const id=u.searchParams.get('id')||u.searchParams.get('disstid')||u.pathname.match(/playlist\/(\d+)/)?.[1];if(!id||!/^\d+$/.test(id))throw Error('请使用 QQ 音乐包含 id / disstid 的完整歌单链接');
  const j=JSON.parse(await get('https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0&format=json&disstid='+id,{headers:{Referer:'https://y.qq.com/'}}));const p=j.cdlist?.[0];if(!p)throw Error('QQ 歌单暂时无法读取，请使用文件导入');name=p.dissname;source='QQ 音乐';tracks=(p.songlist||[]).map((t:any)=>({title:t.songname||t.name,artist:(t.singer||[]).map((a:any)=>a.name).join(' / '),album:t.albumname||t.album?.name,durationMs:(t.interval||0)*1000}));if((p.total_song_num||p.songnum)>tracks.length)warning=`平台仅返回 ${tracks.length} / ${p.total_song_num} 首。`;
@@ -24,7 +34,7 @@ export async function readExternal(input:string):Promise<ExternalPlaylist>{
  const html=await get('https://music.youtube.com/playlist?list='+id);const data=jsonAt(html,'var ytInitialData =')||jsonAt(html,'ytInitialData =');if(!data)throw Error('YouTube Music 公开页面无法读取，请使用导出文件');source='YouTube Music';
  walk(data,v=>{if(v.musicDetailHeaderRenderer)name=txt(v.musicDetailHeaderRenderer.title)||name;const row=v.musicResponsiveListItemRenderer;if(row){const cols=row.flexColumns||[];const title=txt(cols[0]?.musicResponsiveListItemFlexColumnRenderer?.text);const runs=cols[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs||[];const ar=runs.filter((x:any)=>x.navigationEndpoint?.browseEndpoint?.browseId?.startsWith('UC')).map((x:any)=>x.text).join(' / ');if(title)tracks.push({title,artist:ar||'未知歌手'})}});warning='公开页面可能只返回首批歌曲；无法确认歌手的项目会置灰，请核对曲目数量。';
  }else throw Error('暂不支持此链接域名，请使用五个平台的完整歌单链接或 CSV / JSON 文件');
- if(!tracks.length)throw Error('未读取到曲目。歌单可能需要登录或未公开，请使用导出文件');if(tracks.length>500){tracks=tracks.slice(0,500);warning='本次只读取前 500 首，请拆分文件导入剩余歌曲。'}return {name:String(name||'导入的歌单').slice(0,60),tracks,source,warning};
+ if(!tracks.length)throw Error('未读取到曲目。歌单可能需要登录或未公开，请使用导出文件');return {name:String(name||'导入的歌单').slice(0,60),tracks,source,warning};
 }
 
 

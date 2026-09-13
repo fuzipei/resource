@@ -18,9 +18,13 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
   const task=++run.current;abort.current?.abort();const controller=new AbortController();abort.current=controller;
   setPhase('reading');setError('');setList(null);setSongs([]);setConfirmed(false);setCompleted(0);setTotal(0);
   try{
-   if(file&&file.size>500000)throw Error('文件不能超过 500KB');
+   if(file&&file.size>20*1024*1024)throw Error('单个文件不能超过 20MB');
    const data:ExternalPlaylist=file?{name:file.name.replace(/\.(csv|json)$/i,''),source:'文件导入',tracks:parseTrackFile(await file.text())}:await request({action:'import-read',url},controller.signal);
    if(task!==run.current)return;
+   const remaining=data.remainingIds||[];setTotal(data.totalCount||data.tracks.length);setCompleted(data.tracks.length);
+   for(let offset=0;offset<remaining.length;offset+=200){const page=await request({action:'import-details',ids:remaining.slice(offset,offset+200)},controller.signal);if(task!==run.current)return;data.tracks.push(...page.tracks);setCompleted(data.tracks.length)}
+   if(data.totalCount&&data.tracks.length<data.totalCount)data.warning=`平台实际返回 ${data.tracks.length} / ${data.totalCount} 首，部分歌曲可能不可访问，请核对。`;
+   delete data.remainingIds;
    data.tracks=validateTracks(data.tracks);setTotal(data.tracks.length);setPhase('matching');
    const output=await matchPlaylist(data.tracks,async(tracks,signal)=>(await request({action:'import-match',tracks},signal)).items,controller.signal,count=>{if(task===run.current)setCompleted(count)});
    if(task!==run.current)return;
@@ -35,14 +39,14 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
   finally{if(task===run.current)saving.current=false}
  }
  const percent=total?Math.floor(completed/total*100):0;
- const labels:Record<Phase,string>={idle:'',reading:'正在读取歌单…',matching:`正在匹配歌单 · ${percent}%`,ready:'匹配完成，请核对后保存',saving:'正在保存歌单…',cancelled:'已取消，可以重新导入',error:'导入未完成，请重试'};
+ const labels:Record<Phase,string>={idle:'',reading:total?`正在读取歌单 · ${completed} / ${total} 首`:'正在读取歌单…',matching:`正在匹配歌单 · ${percent}%`,ready:'匹配完成，请核对后保存',saving:'正在保存歌单…',cancelled:'已取消，可以重新导入',error:'导入未完成，请重试'};
  return <div className="playlist-import"><button className="primary-btn" disabled={phase==='saving'} onClick={()=>{setOpen(v=>!v)}}>{open?'收起导入':busy?'查看导入进度':'导入外部歌单'}</button>{phase!=='idle'&&<div className="import-progress"><div className="import-progress-header"><span role="status">{labels[phase]}</span>{!open&&<button type="button" onClick={()=>setOpen(true)}>{phase==='ready'?'查看结果':'展开'}</button>}{(phase==='reading'||phase==='matching')&&<button type="button" onClick={cancel}>取消导入</button>}</div><progress aria-label="歌单导入总进度" aria-valuetext={labels[phase]} max={100} value={phase==='reading'||phase==='saving'?undefined:percent}/></div>}{open&&<section className="import-panel" aria-busy={busy}>
   <h3>导入外部歌单</h3><p>切换站内页面不会中断导入，完成匹配后回到这里核对并保存。</p>
 
   <p>网易云 · QQ 音乐 · 酷狗 · YouTube Music · Spotify</p>
   <form onSubmit={e=>{e.preventDefault();if(!busy&&url.trim())void prepare()}}><input aria-label="外部歌单链接" placeholder="粘贴公开歌单的完整链接" value={url} disabled={busy} maxLength={2000} onChange={e=>setUrl(e.target.value)}/><button disabled={busy||!url.trim()} className="primary-btn">读取并匹配</button></form>
   <label className="import-file">或导入 CSV / JSON 文件<input type="file" accept=".csv,.json,text/csv,application/json" disabled={busy} onChange={e=>{const f=e.target.files?.[0];if(f)void prepare(f);e.target.value=''}}/></label>
-  <p>文件包含 title（歌曲名称）与 artist（歌手），每次最多 500 首。短分享链接请先在原平台打开，复制完整歌单地址。</p>
+  <p>文件包含 title（歌曲名称）与 artist（歌手），不限制歌曲首数，系统分批读取、匹配和保存；单个文件最大 20MB。短分享链接请先在原平台打开，复制完整歌单地址。</p>
   {error&&<p role="alert" className="import-error">{error}</p>}
   {list&&(phase==='ready'||phase==='saving')&&<><label>歌单名称<input disabled={busy} value={list.name} maxLength={60} onChange={e=>setList({...list,name:e.target.value})}/></label>
    {list.warning&&<label className="import-warning"><input type="checkbox" disabled={busy} checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>{list.warning} 我已核对并接受本次导入范围。</label>}

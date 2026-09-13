@@ -5,7 +5,7 @@ export const runtime='nodejs';
 export const dynamic='force-dynamic';
 import {authConfig} from './auth-config';
 import {verifyAuthChallenge,verifyInvite,AuthSecurityError} from './auth-security';
-import {readExternal} from '../../playlist-import/sources';
+import {readExternal,readNeteaseTracks} from '../../playlist-import/sources';
 import {validateTracks,exactTrack} from '../../playlist-import/model';
 import {searchAt38} from '../music/at38';
 import {cleanSearch,updateSearches} from '../../search-history';
@@ -52,6 +52,7 @@ async function handle(r:Request){
  return reply({user:{id,username,name:account.name},library:(await read(id!)).data},200,{'Set-Cookie':setCookie(next)});
  }
  if(!uid||!user)throw new InputError('请先登录',401);
+ if(action==='import-details')return reply({tracks:await readNeteaseTracks(body.ids)});
  if(action==='import-read')try{return reply(await readExternal(String(body.url||'').slice(0,2000)))}catch(e){throw new InputError((e as Error).message)};
  if(action==='import-match'){
  const tracks=validateTracks(body.tracks);if(tracks.length>3)throw new InputError('每批最多匹配 3 首');
@@ -65,7 +66,7 @@ async function handle(r:Request){
  else if(action==='history'){const s=song();data.recent=[{...s,playedAt:Date.now()},...data.recent.filter((t:any)=>!match(s,t))].slice(0,200)}
  else if(action==='import-save'){if(data.playlists.length>=100)throw new InputError('最多创建 100 个歌单');if(!Array.isArray(body.songs)||!body.songs.length||body.songs.length>500)throw new InputError('请导入 1–500 首歌曲');const songs=body.songs.map((s:any)=>{body.song=s;return song()});const name=String(body.name||'导入的歌单').trim().slice(0,60);data.playlists.push({id:randomBytes(12).toString('hex'),name:name||'导入的歌单',songs,source:String(body.source||'外部歌单').slice(0,40)})}
  else if(action==='create'){if(data.playlists.length>=100)throw new InputError('最多创建 100 个歌单');const name=String(body.name||'').trim().slice(0,60);if(!name)throw new InputError('请输入歌单名称');data.playlists.push({id:randomBytes(12).toString('hex'),name,songs:[]})}
- else if(['rename','delete','add','remove','remove-many'].includes(action)){const p=data.playlists.find((p:any)=>p.id===body.id);if(!p)throw new InputError('歌单不存在',404);if(action==='remove-many'){if(!Array.isArray(body.keys)||body.keys.length>500)throw new InputError('请选择最多 500 首歌曲');const keys=new Set(body.keys.filter((k:unknown)=>typeof k==='string'));p.songs=p.songs.filter((s:any)=>!keys.has(s.provider+':'+s.id))}if(action==='delete')data.playlists=data.playlists.filter((p:any)=>p.id!==body.id);if(action==='rename'){const name=String(body.name||'').trim().slice(0,60);if(!name)throw new InputError('请输入名称');p.name=name}if(action==='add'||action==='remove'){const s=song();p.songs=p.songs.filter((t:any)=>!match(s,t));if(action==='add')p.songs.unshift(s);p.songs=p.songs.slice(0,500)}}
+ else if(['rename','delete','add','remove','remove-many'].includes(action)){const p=data.playlists.find((p:any)=>p.id===body.id);if(!p)throw new InputError('歌单不存在',404);if(action==='remove-many'){if(!Array.isArray(body.keys)||body.keys.length>500)throw new InputError('请选择最多 500 首歌曲');const keys=new Set(body.keys.filter((k:unknown)=>typeof k==='string'));p.songs=p.songs.filter((s:any)=>!keys.has(s.provider+':'+s.id))}if(action==='delete')data.playlists=data.playlists.filter((p:any)=>p.id!==body.id);if(action==='rename'){const name=String(body.name||'').trim().slice(0,60);if(!name)throw new InputError('请输入名称');p.name=name}if(action==='add'||action==='remove'){const s=song();p.songs=p.songs.filter((t:any)=>!match(s,t));if(action==='add')p.songs.unshift(s);/* Keep the entire playlist when adding or removing a track. */}}
  else throw new InputError('未知操作');
  const ok=await db.eval("if (redis.call('GET',KEYS[1]) or '')~=ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]);return 1",{keys:[PREFIX+'library:'+uid],arguments:[raw||'',JSON.stringify(data)]});if(ok)return reply({library:data});
  }throw new InputError('记录正在更新，请重试',409);
