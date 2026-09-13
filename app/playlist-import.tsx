@@ -6,8 +6,10 @@ import {matchPlaylist} from './playlist-import/match';
 import type {Song} from './music-types';
 import './playlist-import/import.css';
 type Phase='idle'|'reading'|'matching'|'ready'|'saving'|'cancelled'|'error';
-export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<string,unknown>)=>Promise<void>}){
+export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<string,unknown>,onProgress?:(count:number)=>void)=>Promise<void>}){
  const [open,setOpen]=useState(false),[url,setUrl]=useState(''),[list,setList]=useState<ExternalPlaylist|null>(null),[songs,setSongs]=useState<Song[]>([]),[phase,setPhase]=useState<Phase>('idle'),[completed,setCompleted]=useState(0),[total,setTotal]=useState(0),[error,setError]=useState(''),[confirmed,setConfirmed]=useState(false);
+ const [previewPage,setPreviewPage]=useState(0);
+ const importKey=useRef(''),[savedCount,setSavedCount]=useState(0);
  const run=useRef(0),abort=useRef<AbortController|null>(null),saving=useRef(false);
  const busy=phase==='reading'||phase==='matching'||phase==='saving';
  useEffect(()=>{setOpen(false);setUrl('');setList(null);setSongs([]);setPhase('idle');setError('');setCompleted(0);setTotal(0);saving.current=false;return()=>{run.current++;abort.current?.abort()}},[owner]);
@@ -15,8 +17,8 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
  function cancel(){run.current++;abort.current?.abort();setList(null);setSongs([]);setPhase('cancelled');setError('')}
  async function prepare(file?:File){
   if(saving.current)return;
-  const task=++run.current;abort.current?.abort();const controller=new AbortController();abort.current=controller;
-  setPhase('reading');setError('');setList(null);setSongs([]);setConfirmed(false);setCompleted(0);setTotal(0);
+  const task=++run.current;importKey.current=Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)+'_'+Math.random().toString(36).slice(2);abort.current?.abort();const controller=new AbortController();abort.current=controller;
+  setPreviewPage(0);setPhase('reading');setError('');setList(null);setSongs([]);setConfirmed(false);setCompleted(0);setTotal(0);
   try{
    if(file&&file.size>20*1024*1024)throw Error('单个文件不能超过 20MB');
    const data:ExternalPlaylist=file?{name:file.name.replace(/\.(csv|json)$/i,''),source:'文件导入',tracks:parseTrackFile(await file.text())}:await request({action:'import-read',url},controller.signal);
@@ -25,7 +27,7 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
    for(let offset=0;offset<remaining.length;offset+=200){const page=await request({action:'import-details',ids:remaining.slice(offset,offset+200)},controller.signal);if(task!==run.current)return;data.tracks.push(...page.tracks);setCompleted(data.tracks.length)}
    if(data.totalCount&&data.tracks.length<data.totalCount)data.warning=`平台实际返回 ${data.tracks.length} / ${data.totalCount} 首，部分歌曲可能不可访问，请核对。`;
    delete data.remainingIds;
-   data.tracks=validateTracks(data.tracks);setTotal(data.tracks.length);setPhase('matching');
+   data.tracks=validateTracks(data.tracks);setTotal(data.tracks.length);setCompleted(0);setPhase('matching');
    const output=await matchPlaylist(data.tracks,async(tracks,signal)=>(await request({action:'import-match',tracks},signal)).items,controller.signal,count=>{if(task===run.current)setCompleted(count)});
    if(task!==run.current)return;
    setList(data);setSongs(output);setPhase('ready');
@@ -33,14 +35,14 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
  }
  async function save(){
   if(!list||busy||saving.current||songs.length!==list.tracks.length||!songs.length||list.warning&&!confirmed)return;
-  const task=run.current;saving.current=true;setPhase('saving');setError('');
-  try{await onSave({action:'import-save',name:list.name,source:list.source,songs});if(task===run.current){setOpen(false);setList(null);setSongs([]);setPhase('idle')}}
+  const task=run.current;saving.current=true;setSavedCount(0);setPhase('saving');setError('');
+  try{await onSave({action:'import-save',importId:importKey.current,name:list.name,source:list.source,songs},count=>{if(task===run.current)setSavedCount(count)});if(task===run.current){setOpen(false);setList(null);setSongs([]);setPhase('idle')}}
   catch(e){if(task===run.current){setError(e instanceof Error?e.message:'保存失败，请重试');setPhase('ready')}}
   finally{if(task===run.current)saving.current=false}
  }
  const percent=total?Math.floor(completed/total*100):0;
- const labels:Record<Phase,string>={idle:'',reading:total?`正在读取歌单 · ${completed} / ${total} 首`:'正在读取歌单…',matching:`正在匹配歌单 · ${percent}%`,ready:'匹配完成，请核对后保存',saving:'正在保存歌单…',cancelled:'已取消，可以重新导入',error:'导入未完成，请重试'};
- return <div className="playlist-import"><button className="primary-btn" disabled={phase==='saving'} onClick={()=>{setOpen(v=>!v)}}>{open?'收起导入':busy?'查看导入进度':'导入外部歌单'}</button>{phase!=='idle'&&<div className="import-progress"><div className="import-progress-header"><span role="status">{labels[phase]}</span>{!open&&<button type="button" onClick={()=>setOpen(true)}>{phase==='ready'?'查看结果':'展开'}</button>}{(phase==='reading'||phase==='matching')&&<button type="button" onClick={cancel}>取消导入</button>}</div><progress aria-label="歌单导入总进度" aria-valuetext={labels[phase]} max={100} value={phase==='reading'||phase==='saving'?undefined:percent}/></div>}{open&&<section className="import-panel" aria-busy={busy}>
+ const labels:Record<Phase,string>={idle:'',reading:total?`正在读取歌单 · ${completed} / ${total} 首`:'正在读取歌单…',matching:`正在匹配歌单 · ${percent}%`,ready:'匹配完成，请核对后保存',saving:`正在保存歌单 · ${savedCount} / ${songs.length} 首`,cancelled:'已取消，可以重新导入',error:'导入未完成，请重试'};
+ return <div className="playlist-import"><button className="primary-btn" disabled={phase==='saving'} onClick={()=>{setOpen(v=>!v)}}>{open?'收起导入':busy?'查看导入进度':'导入外部歌单'}</button>{phase!=='idle'&&<div className="import-progress"><div className="import-progress-header"><span role="status">{labels[phase]}</span>{!open&&<button type="button" onClick={()=>setOpen(true)}>{phase==='ready'?'查看结果':'展开'}</button>}{(phase==='reading'||phase==='matching')&&<button type="button" onClick={cancel}>取消导入</button>}</div><progress aria-label="歌单导入总进度" aria-valuetext={labels[phase]} max={100} value={phase==='saving'?(songs.length?savedCount/songs.length*100:0):phase==='reading'?(total?completed/total*100:undefined):percent}/></div>}{open&&<section className="import-panel" aria-busy={busy}>
   <h3>导入外部歌单</h3><p>切换站内页面不会中断导入，完成匹配后回到这里核对并保存。</p>
 
   <p>网易云 · QQ 音乐 · 酷狗 · YouTube Music · Spotify</p>
@@ -51,7 +53,7 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
   {list&&(phase==='ready'||phase==='saving')&&<><label>歌单名称<input disabled={busy} value={list.name} maxLength={60} onChange={e=>setList({...list,name:e.target.value})}/></label>
    {list.warning&&<label className="import-warning"><input type="checkbox" disabled={busy} checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>{list.warning} 我已核对并接受本次导入范围。</label>}
    <p>共 {songs.length} 首 · 已匹配 {songs.filter(s=>s.importStatus==='matched').length} 首 · 未匹配 {songs.filter(s=>s.importStatus==='unmatched').length} 首</p>
-   <details className="import-result"><summary>查看导入结果</summary><div className="import-preview">{songs.map((s,i)=><div key={i} className={s.importStatus==='unmatched'?'unmatched-song':''}><b>{s.title}</b><span>{s.artist}</span><small>{s.importStatus==='unmatched'?'未找到歌曲资源':'已匹配'}</small></div>)}</div></details>
+   <details className="import-result"><summary>查看导入结果</summary><div className="import-preview">{songs.slice(previewPage*100,(previewPage+1)*100).map((s,i)=><div key={i} className={s.importStatus==='unmatched'?'unmatched-song':''}><b>{s.title}</b><span>{s.artist}</span><small>{s.importStatus==='unmatched'?'未找到歌曲资源':'已匹配'}</small></div>)}</div>{songs.length>100&&<div className="import-progress-header"><button type="button" disabled={previewPage===0} onClick={()=>setPreviewPage(p=>p-1)}>上一页</button><span>第 {previewPage+1} / {Math.ceil(songs.length/100)} 页 · 每页 100 首</span><button type="button" disabled={(previewPage+1)*100>=songs.length} onClick={()=>setPreviewPage(p=>p+1)}>下一页</button></div>}</details>
    <button className="primary-btn" disabled={busy||!!list.warning&&!confirmed} onClick={save}>保存到我的歌单</button>
   </>}
  </section>}</div>;
