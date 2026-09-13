@@ -1,4 +1,4 @@
-import {LOGIN_CHALLENGE_REQUIRED} from '../../auth-policy';
+import {LOGIN_CHALLENGE_REQUIRED,REGISTER_CHALLENGE_REQUIRED} from '../../auth-policy';
 import {readRequestBody,RequestBodyError} from './request-body';
 import {databaseUrl,ApiError} from '../../server/site-store';
 export const runtime='nodejs';
@@ -41,7 +41,7 @@ async function handle(r:Request){
  const username=String(body.username||'').trim().toLowerCase(),password=String(body.password||'');
  if(!/^[a-z0-9_]{3,32}$/.test(username)||password.length<10||password.length>128)throw new InputError('账号须为 3–32 位字母、数字或下划线，密码须为 10–128 位');
  const ip=r.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local';const ipLimit=PREFIX+'ip-limit:'+hash(ip);const ipCount=await db.incr(ipLimit);if(ipCount===1)await db.expire(ipLimit,600);if(ipCount>100)throw new InputError('尝试过于频繁，请十分钟后重试',429);const throttle=PREFIX+'limit:'+hash(ip+username);const attempts=await db.incr(throttle);if(attempts===1)await db.expire(throttle,600);if(attempts>20)throw new InputError('尝试过于频繁，请十分钟后重试',429);
- if(action==='register'||LOGIN_CHALLENGE_REQUIRED){const security=await authConfig();await verifyAuthChallenge(security,r,action,body.turnstileToken);if(action==='register')verifyInvite(security.inviteCode,body.inviteCode);}
+ const needsChallenge=action==='register'?REGISTER_CHALLENGE_REQUIRED:LOGIN_CHALLENGE_REQUIRED;if(action==='register'||needsChallenge){const security=await authConfig();if(needsChallenge)await verifyAuthChallenge(security,r,action,body.turnstileToken);if(action==='register')verifyInvite(security.inviteCode,body.inviteCode);}
  const index=PREFIX+'username:'+username;let id=await db.get(index);let account=id?JSON.parse(await db.get(PREFIX+'user:'+id)||'null'):null;
  if(action==='register'){
  if(id)throw new InputError('这个账号已被使用',409);
