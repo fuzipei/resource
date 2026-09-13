@@ -60,3 +60,24 @@
 .guofeng-grid .skin-swatches{display:none}
 .guofeng-grid .skin-description{font-size:12px;letter-spacing:.06em}
 @media(max-width:600px){.guofeng-grid{gap:20px}.guofeng-grid .skin-preview.scene-preview{height:auto;aspect-ratio:2.1}.guofeng-grid .preview-row{margin-top:8px}.guofeng-grid .preview-player{margin-top:9px}[data-skin-category=guofeng] .music-app:before{background-position:right bottom;opacity:.55}}
+
+/* Explicit night colors also survive older browsers and CSS build fallbacks. */
+[data-skin-category=guofeng][data-theme=dark]{--foreground:#d0d7d2;--secondary:#a1ada6;--border:#ffffff1c;--soft:#ffffff0b;--muted:#ffffff0b;--surface:#ffffff09;--glass:var(--skin-night);--popover:var(--skin-night);--shadow:0 8px 24px #0002}
+[data-skin-category=guofeng][data-theme=dark] .music-sidebar{background:transparent;border-right-color:#ffffff0c}
+[data-skin-category=guofeng][data-theme=dark] .music-sidebar nav button.active{background:#ffffff0c;color:var(--foreground);box-shadow:none}
+[data-skin-category=guofeng][data-theme=dark] .floating-player{background:var(--skin-night);border-top:1px solid #ffffff12;box-shadow:none;backdrop-filter:none}
+[data-skin-category=guofeng][data-theme=dark] .music-topbar .login-entry{background:#ffffff12;color:var(--foreground);border:1px solid #ffffff24;box-shadow:none}
+[data-skin-category=guofeng][data-theme=dark] .music-avatar{background:#ffffff12;color:var(--foreground)}
+[data-skin-category=guofeng][data-theme=dark] .playlist-table-wrap{background:transparent}
+[data-skin-category=guofeng][data-theme=dark] .playlist-table th{background:#ffffff09;color:var(--secondary)}
+[data-skin-category=guofeng][data-theme=dark] .playlist-table tbody tr:nth-child(even){background:#ffffff04}
+[data-skin-category=guofeng][data-theme=dark] .playlist-table tbody tr:hover,
+[data-skin-category=guofeng][data-theme=dark] .playlist-table tbody tr.is-current{background:#ffffff0d}
+[data-skin-category=guofeng][data-theme=dark] .music-row{border-color:#ffffff0c}
+[data-skin-category=guofeng][data-theme=dark] .music-row:hover{background:#ffffff08}
+[data-skin-category=guofeng][data-theme=dark] .icon-btn{background:transparent;color:var(--secondary)}
+[data-skin-category=guofeng][data-theme=dark] .icon-btn:hover:not(:disabled){background:#ffffff10;color:var(--foreground)}
+[data-skin-category=guofeng][data-theme=dark] .global-search,
+[data-skin-category=guofeng][data-theme=dark] .unified-search{background:#ffffff05;border-color:var(--border);box-shadow:none}
+[data-skin-category=guofeng][data-theme=dark] .settings-block{background:var(--skin-night)}
+[data-skin-category=guofeng][data-theme=dark] .music-app:before{opacity:.55}

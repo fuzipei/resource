@@ -379,3 +379,11 @@
 .personal-library>.playlist-import{margin-bottom:20px}
 .personal-library>.playlist-import>.import-progress{margin:12px 0}
 @media(max-width:600px){.music-topbar .music-avatar.login-entry{min-width:88px;padding:0 16px;gap:6px;height:44px}.import-progress-header{flex-wrap:wrap}.import-progress-header [role=status]{flex:1;min-width:160px}}
+
+/* Playback rate stays reachable in compact and fullscreen controls. */
+.player-speed{flex:0 0 auto}
+.player-speed select{width:66px;min-height:36px;padding:6px 7px;border:1px solid var(--border);border-radius:18px;background:var(--popover);color:var(--foreground);font-size:12px;cursor:pointer;font-variant-numeric:tabular-nums}
+@media(min-width:1151px){.music-app:not(.immersive-player) .floating-player{gap:10px}.music-app:not(.immersive-player) .floating-player .player-seek{min-width:90px;margin-inline:4px;gap:7px}}
+.immersive-player .floating-player .player-speed{position:absolute;right:0;top:-8px;z-index:2}
+.immersive-player .floating-player .player-seek{width:min(700px,calc(100% - 168px));left:calc(50% - 18px)}
+@media(max-width:767px){.player-speed select{width:59px;padding:5px;min-height:36px;font-size:11px}.music-app:not(.immersive-player) .floating-player{column-gap:5px}.music-app:not(.immersive-player) .floating-player .current-info{min-width:0;gap:6px}}

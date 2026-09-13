@@ -1,10 +1,11 @@
 'use client';
+import {fetchWithTimeout} from './fetch-with-timeout';
 import {useEffect,useState} from 'react';
 import {Music2} from 'lucide-react';
 import type {Song} from './music-types';
 const cache=new Map<string,{until:number;promise:Promise<string>}>();
 let running=0;const waiting:(()=>void)[]=[];
-async function requestCover(params:string){if(running>=4)await new Promise<void>(resolve=>waiting.push(resolve));running++;try{const r=await fetch('/api/artwork?'+params,{signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('Artwork unavailable');return String(((await r.json()) as {url?:string}).url||'')}finally{running--;waiting.shift()?.()}}
+async function requestCover(params:string){if(running>=4)await new Promise<void>(resolve=>waiting.push(resolve));running++;try{const r=await fetchWithTimeout('/api/artwork?'+params,{},25000);if(!r.ok)throw Error('Artwork unavailable');return String(((await r.json()) as {url?:string}).url||'')}finally{running--;waiting.shift()?.()}}
 function lookup(params:string){const hit=cache.get(params);if(hit&&hit.until>Date.now())return hit.promise;if(cache.size>=500)cache.delete(cache.keys().next().value!);const entry={until:Date.now()+86400000,promise:Promise.resolve('')};entry.promise=requestCover(params).then(url=>{if(!url)entry.until=Date.now()+600000;return url}).catch(()=>{entry.until=Date.now()+30000;return ''});cache.set(params,entry);return entry.promise}
 export function Artwork({song,large=false}:{song?:Song;large?:boolean}){
  const [failed,setFailed]=useState<string[]>([]),[matched,setMatched]=useState<{key:string;url:string}|null>(null);

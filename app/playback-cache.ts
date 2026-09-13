@@ -1,3 +1,4 @@
+import {fetchWithTimeout} from './fetch-with-timeout';
 ﻿import type {Song,Quality} from './music-types';
 export type Playback={qualities?:Quality[];error?:string;code?:string;ok:boolean;expectedDuration?:number};
 const cache=new Map<string,{until:number;value:Promise<Playback>}>();
@@ -17,12 +18,12 @@ export function resolvePlayback(song:Song):Promise<Playback>{
  if(cache.size>=40)cache.delete(cache.keys().next().value!);
  const controller=new AbortController();const known=(song.durationMs||0)/1000||(song.duration.includes(':')?song.duration.split(':').reduce((n,v)=>n*60+Number(v),0):0);
  // Fetch catalog duration independently of the audio URL: previews often report their own 45s duration.
- const durationPromise=/^(wy_\d+|qq_[a-zA-Z0-9]+)$/.test(song.id)?fetch('/api/durations?'+new URLSearchParams({ids:song.id}),{cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(8000)])}).then(r=>r.json()).then((j:any)=>Number(j.durations?.[song.id])/1000||known).catch(()=>known):Promise.resolve(known);
+ const durationPromise=/^(wy_\d+|qq_[a-zA-Z0-9]+)$/.test(song.id)?fetchWithTimeout('/api/durations?'+new URLSearchParams({ids:song.id}),{cache:'no-store',signal:controller.signal},8000).then(r=>r.json()).then((j:any)=>Number(j.durations?.[song.id])/1000||known).catch(()=>known):Promise.resolve(known);
  const params={id:song.id,title:song.title,artist:song.artist,duration:String(known),q:(song.keyword||`${song.title} ${song.artist}`).slice(0,100)};
  let missingDuration=false;
  const jobs=['at38','coco','gd','gequhai'].map(async(source,index)=>{
  await new Promise<void>((resolve,reject)=>{if(controller.signal.aborted){reject(Error('Cancelled'));return}const abort=()=>{clearTimeout(timer);reject(Error('Cancelled'))};const timer=setTimeout(()=>{controller.signal.removeEventListener('abort',abort);resolve()},index*900);controller.signal.addEventListener('abort',abort,{once:true})});
- const r=await fetch('/api/playback?'+new URLSearchParams({...params,source}),{signal:AbortSignal.any([controller.signal,AbortSignal.timeout(18000)])});const j=await r.json() as {qualities?:Quality[];expectedDuration?:number};if(!r.ok||!j.qualities?.length)throw Error('No audio');
+ const r=await fetchWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:controller.signal},18000);const j=await r.json() as {qualities?:Quality[];expectedDuration?:number};if(!r.ok||!j.qualities?.length)throw Error('No audio');
  for(const quality of j.qualities){if(failed.get(key)?.has(quality.url))continue;try{const expected=await durationPromise||j.expectedDuration||known;if(!Number.isFinite(expected)||expected<=0){missingDuration=true;throw Error('Duration unavailable')}await checkAudio(quality.url,expected,controller.signal);return {ok:true,qualities:[quality],expectedDuration:expected}}catch{if(controller.signal.aborted)throw Error('Cancelled')}}throw Error('No playable audio');
  });
  const value=Promise.any(jobs).then(result=>{controller.abort();return result}).catch(()=>{controller.abort();if(cache.get(key)?.value===value)cache.delete(key);return {ok:false,error:missingDuration?'歌曲时长资料暂时无法读取，请稍后重试。':'未找到可验证的完整歌曲音频，请稍后重试。',code:missingDuration?'DURATION_UNAVAILABLE':'ALL_UNAVAILABLE'}});
@@ -37,7 +38,7 @@ export async function discoverLossless(song:Song,signal:AbortSignal,onQuality:(q
  if(!expected||signal.aborted)return;
  const params={id:song.id,title:song.title,artist:song.artist,duration:String(expected),level:'lossless'};
  await Promise.allSettled(['coco','gd'].map(async source=>{
-  const r=await fetch('/api/playback?'+new URLSearchParams({...params,source}),{signal:AbortSignal.any([signal,AbortSignal.timeout(20000)])});
+  const r=await fetchWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:signal},20000);
   if(!r.ok)return;
   const j=await r.json() as Playback;
   for(const quality of j.qualities||[]){
