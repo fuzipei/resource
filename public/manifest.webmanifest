@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "共鸣 Resonance",
+  "short_name": "共鸣",
+  "description": "发现音乐，收藏歌单，让喜欢的音乐一直陪着你。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e5efe7",
+  "theme_color": "#16604a",
+  "icons": [
+    {
+      "src": "/icons/app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
