@@ -1,14 +1,17 @@
-﻿'use client';
+'use client';
+import {artworkSize} from './artwork-size';
+
+import {cachedCurated,getCuratedCatalog} from './curated-cache';
 import {useEffect,useRef,useState} from 'react';
 import {Play,Headphones,ChevronRight,RefreshCw,Music2} from 'lucide-react';
 import {sceneCategories,moodCategories,genreCategories,type CuratedFeed,type CuratedPlaylist} from './curated-types';
 import type {Mix,Song} from './music-types';
 import {Artwork} from './artwork';
 const count=(n:number)=>n>=10000?(n/10000).toFixed(1)+'万':String(n);
-function Picture({url}:{url:string}){return url?<img src={url} alt="" loading="lazy" onError={e=>{e.currentTarget.style.visibility='hidden'}}/>:<Music2 className="curated-placeholder"/>}
+function Picture({url}:{url:string}){return url?<img src={artworkSize(url,384)} decoding="async" alt="" loading="lazy" onError={e=>{e.currentTarget.style.visibility='hidden'}}/>:<Music2 className="curated-placeholder"/>}
 export function CuratedPage({onOpen,recent,play}:{onOpen:(mix:Mix)=>void;recent:Song[];play:(s:Song,list:Song[])=>void}){
- const [feed,setFeed]=useState<CuratedFeed|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[opening,setOpening]=useState(''),[rotation,setRotation]=useState(0),[expanded,setExpanded]=useState('');const controller=useRef<AbortController|null>(null);
- async function load(signal?:AbortSignal){setBusy(true);setError('');try{const r=await fetch('/api/curated',{signal});const j=await r.json() as CuratedFeed&{error?:string};if(!r.ok)throw Error(j.error);setFeed(j)}catch(e){if(!signal?.aborted)setError((e as Error).message)}finally{if(!signal?.aborted)setBusy(false)}}
+ const [feed,setFeed]=useState<CuratedFeed|null>(cachedCurated),[error,setError]=useState(''),[busy,setBusy]=useState(false),[opening,setOpening]=useState(''),[rotation,setRotation]=useState(0),[expanded,setExpanded]=useState('');const controller=useRef<AbortController|null>(null);
+ async function load(signal?:AbortSignal){setBusy(true);setError('');try{const j=await getCuratedCatalog(signal,!signal);if(!signal?.aborted)setFeed(j)}catch(e){if(!signal?.aborted)setError((e as Error).message)}finally{if(!signal?.aborted)setBusy(false)}}
  useEffect(()=>{const c=new AbortController();void load(c.signal);return()=>{c.abort();controller.current?.abort()}},[]);
  async function open(p:CuratedPlaylist){controller.current?.abort();const c=new AbortController();controller.current=c;setOpening(p.id);setError('');try{const r=await fetch('/api/curated?id='+p.id,{signal:c.signal});const j=await r.json() as Mix&{error?:string};if(!r.ok||!j.songs?.length)throw Error(j.error||'这个歌单暂时没有可播放曲目');if(!c.signal.aborted)onOpen(j)}catch(e){if(!c.signal.aborted)setError((e as Error).message)}finally{if(!c.signal.aborted)setOpening('')}}
  const pick=(cat:string)=>{const rows=feed?.groups[cat]||[];return rows.length?rows[rotation%rows.length]:undefined};

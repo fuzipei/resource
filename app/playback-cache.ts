@@ -57,7 +57,9 @@ export async function discoverLossless(song:Song,signal:AbortSignal,onQuality:(q
    if(signal.aborted)return;
    if(!['audio/flac','audio/wav'].includes(quality.mime||'')||failed.get(cacheKey(song))?.has(quality.url))continue;
    const support=new Audio().canPlayType(quality.mime!);if(!support)continue;
-   try{await checkAudio(quality.url,expected,signal);if(!signal.aborted)onQuality({...quality,id:source+'-lossless'});}catch{}
+   // Do not open additional FLAC/WAV decoders while another song plays.
+   // The main player validates duration when the user selects this quality.
+   if(!signal.aborted){onQuality({...quality,id:source+'-lossless'});break}
   }
  }));
 }

@@ -387,3 +387,8 @@
 .immersive-player .floating-player .player-speed{position:absolute;right:0;top:-8px;z-index:2}
 .immersive-player .floating-player .player-seek{width:min(700px,calc(100% - 168px));left:calc(50% - 18px)}
 @media(max-width:767px){.player-speed select{width:59px;padding:5px;min-height:36px;font-size:11px}.music-app:not(.immersive-player) .floating-player{column-gap:5px}.music-app:not(.immersive-player) .floating-player .current-info{min-width:0;gap:6px}}
+
+.playlist-table tbody .virtual-spacer{background:transparent!important;pointer-events:none}.playlist-table tbody tr:not(.virtual-spacer){height:58px}
+
+/* Avoid an offscreen blur surface as tall as the entire song list. */
+[data-skin] .single-song-list{backdrop-filter:none}

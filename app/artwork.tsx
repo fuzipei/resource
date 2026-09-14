@@ -1,6 +1,7 @@
 'use client';
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {useEffect,useState,useRef} from 'react';
+import {artworkSize} from './artwork-size';
 import {Music2} from 'lucide-react';
 import type {Song} from './music-types';
 const cache=new Map<string,{until:number;url:string}>();
@@ -37,5 +38,5 @@ export function Artwork({song,large=false}:{song?:Song;large?:boolean}){
  const replacement=matched?.key===params?matched.url:'';
  const url=original&&!failed.includes(original)?original:replacement&&!failed.includes(replacement)?replacement:'';
  useEffect(()=>{if(!visible||!params||(original&&!failed.includes(original)))return;const controller=new AbortController();lookup(params,controller.signal).then(url=>{if(!controller.signal.aborted)setMatched({key:params,url})}).catch(()=>{});return()=>controller.abort()},[params,original,failed,visible]);
- return <div ref={container} className={`song-art ${large?'large-art':''}`}>{visible&&url?<img key={url} src={url} alt="" loading={large?'eager':'lazy'} decoding="async" onError={()=>setFailed(list=>list.includes(url)?list:[...list.slice(-3),url])}/>:<><span className="art-sun"/><Music2 aria-hidden="true"/></>}</div>;
+ return <div ref={container} className={`song-art ${large?'large-art':''}`}>{visible&&url?<img key={url} src={artworkSize(url,large?800:160)} alt="" loading={large?'eager':'lazy'} decoding="async" onError={()=>setFailed(list=>list.includes(url)?list:[...list.slice(-3),url])}/>:<><span className="art-sun"/><Music2 aria-hidden="true"/></>}</div>;
 }
