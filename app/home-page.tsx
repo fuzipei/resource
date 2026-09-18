@@ -1,4 +1,5 @@
 'use client';
+import {nextRecommendations} from './home-recommendations';
 import {artworkSize} from './artwork-size';
 
 import {cachedCurated,getCuratedCatalog} from './curated-cache';
@@ -13,7 +14,9 @@ export function HomePage({feed,recent,favoriteCount,playlistCount,current,playin
  useEffect(()=>{setNow(new Date());const timer=setInterval(()=>setNow(new Date()),60000);return()=>clearInterval(timer)},[]);
  useEffect(()=>{const c=new AbortController();setError('');getCuratedCatalog(c.signal,retry>0).then(data=>{if(!c.signal.aborted)setCatalog(data)}).catch(e=>{if(!c.signal.aborted)setError(e.message)});return()=>c.abort()},[retry]);
  useEffect(()=>()=>request.current?.abort(),[]);
- const pick=(cat:string)=>{const rows=catalog?.groups[cat]||[];return rows[rotation%Math.max(1,rows.length)]};
+ const [recommendations,setRecommendations]=useState<Record<string,CuratedPlaylist>>({});
+ useEffect(()=>{if(catalog)setRecommendations(nextRecommendations(catalog.groups))},[catalog,rotation]);
+ const pick=(cat:string)=>recommendations[cat];
  async function open(p:CuratedPlaylist){request.current?.abort();const c=new AbortController();request.current=c;setOpening(p.id);setError('');try{const r=await fetch('/api/curated?id='+p.id,{signal:c.signal});const j=await r.json() as Mix & {error?:string};if(!r.ok||!j.songs?.length)throw Error(j.error||'歌单暂时无法读取');if(!c.signal.aborted)onOpen(j)}catch(e){if(!c.signal.aborted)setError((e as Error).message)}finally{if(!c.signal.aborted)setOpening('')}}
  const hot=feed?.mixes.find(m=>m.id==='3778678')?.songs||feed?.mixes[0]?.songs||[];
  const fresh=feed?.mixes.find(m=>m.id==='3779629')?.songs||[];
