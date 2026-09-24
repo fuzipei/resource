@@ -20,7 +20,7 @@ export async function GET(request:Request){
  let neteaseId=id.startsWith('wy_')?id.slice(3):'';
  if(!neteaseId){const j=await json('https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'search',source:'netease',name:title+' '+artist,count:'20',pages:'1'}),signal);const match=Array.isArray(j)&&j.find((s:any)=>same(title,artist,s.name,(s.artist||[]).join('/')));if(!match)throw Error('No matching version');neteaseId=String(match.id)}
  // Resolve the exact platform ID; only use search when converting another platform's ID.
- const catalog=await neteaseDurations([neteaseId]);expectedDuration=catalog[neteaseId]/1000||expectedDuration;
+ if(expectedDuration<=0){const catalog=await neteaseDurations([neteaseId]);expectedDuration=catalog[neteaseId]/1000||0}
  const j=await json(source==='coco'?'https://cocodownloader.markqq.com/api/url?'+new URLSearchParams({id:neteaseId,provider:'netease',extra:JSON.stringify({selectedLevel:level})}):'https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'url',source:'netease',id:neteaseId,br:level==='lossless'?'999':'320'}),signal);
  if(j.freeTrialInfo||j.trialInfo||j.isPreview)throw Error('Preview only');url=j.url;mime=({mp3:'audio/mpeg',flac:'audio/flac',wav:'audio/wav',m4a:'audio/mp4'} as Record<string,string>)[j.type]||'';
  }
