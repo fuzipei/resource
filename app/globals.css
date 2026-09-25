@@ -216,6 +216,13 @@
 .song-share button{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--foreground);font-size:12px;transition:transform .18s,border-color .18s,box-shadow .18s}
 .song-share button:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:0 5px 15px #0002}
 .song-share button:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.music-row .row-share{display:grid;place-items:center;flex:0 0 30px;width:30px;height:32px;color:var(--secondary);opacity:.7;transition:color .18s,opacity .18s,transform .18s}
+.music-row .row-share:hover,.music-row .row-share:focus-visible{color:var(--primary);opacity:1;transform:translateY(-1px)}
+.music-row .row-share:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:8px}
+.music-row .row-share:disabled,.playlist-row-actions button:disabled{opacity:.35;cursor:not-allowed}
+.share-toast{position:fixed;z-index:65;bottom:112px;left:50%;transform:translateX(-50%);padding:10px 16px;border:1px solid var(--border);border-radius:14px;background:var(--popover);color:var(--foreground);box-shadow:var(--shadow);font-size:13px;white-space:nowrap}
+@media(max-width:767px){.single-song-list .music-row .row-share{flex-basis:28px;width:28px}}
+@media(max-width:600px){.playlist-table thead th:last-child{width:88px}}
 .record-settings>button{display:flex;align-items:center;gap:7px;padding:6px 0}
 .record-switch{width:28px;height:17px;background:var(--border);border-radius:12px;padding:3px;display:block}.record-switch:after{content:'';display:block;width:11px;height:11px;background:var(--background);border-radius:50%;transition:transform .2s}
 [aria-checked=true] .record-switch{background:var(--primary)}[aria-checked=true] .record-switch:after{transform:translateX(11px)}
