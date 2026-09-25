@@ -7,8 +7,8 @@ const decode = (s: string) => s.replace(/<[^>]*>/g, '').replace(/&(?:amp|quot|ap
   return Number.isFinite(n) && n <= 0x10ffff ? String.fromCodePoint(n) : e;
 }).trim();
 
-async function loadSearch(keyword: string) {
-  const r = await fetch(origin + '?' + new URLSearchParams({keyword}), {signal:AbortSignal.timeout(20000), redirect:'manual'});
+async function loadSearch(keyword: string, signal?: AbortSignal) {
+  const r = await fetch(origin + '?' + new URLSearchParams({keyword}), {signal:signal ? AbortSignal.any([signal,AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000), redirect:'manual'});
   if (!r.ok) throw Error('51 音乐暂时不可用');
   // The upstream keeps streaming its large message board after the song list.
   // Stop at the footer: all search cards precede it, and comments are irrelevant.
@@ -28,8 +28,8 @@ async function loadSearch(keyword: string) {
   return {html, cookie:r.headers.get('set-cookie')?.split(';')[0] || ''};
 }
 
-export async function searchAt38(keyword: string, page: number) {
-  const {html}=await loadSearch(keyword);
+export async function searchAt38(keyword: string, page: number, signal?: AbortSignal) {
+  const {html}=await loadSearch(keyword,signal);
   const cards = html.split(/<div\s+class=["']music-card["']/i).slice(1);
   const items = cards.flatMap(card => {
     const id = card.match(/data-id=["']([a-zA-Z0-9_-]+)["']/)?.[1];

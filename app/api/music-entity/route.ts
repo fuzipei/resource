@@ -13,9 +13,18 @@ async function resolve(p:URLSearchParams,kind:EntityKind,signal:AbortSignal){
  const direct=p.get('id');if(direct){if(!numeric(direct))throw new EntityError('音乐资料编号无效',400);return direct}
  const source=p.get('songId')||'',title=p.get('title')||'',artist=p.get('artist')||'',albumName=p.get('album')||'',name=p.get('name')||'';
  if(!title||!artist||!name||[source,title,artist,albumName,name].some(v=>v.length>300))throw new EntityError('缺少歌曲资料',400);
+ // A song search can rank covers above the original recording. Resolve an artist
+ // by the clicked name first, then use the song as a fallback for ambiguous names.
+ if(kind==='artist'){
+  try{
+   const j=await json('/api/search/get/web?'+new URLSearchParams({s:name,type:'100',limit:'30'}),signal);
+   const exact=(j.result?.artists||[]).find((a:any)=>entityName(a.name||'')===entityName(name)&&numeric(a.id));
+   if(exact)return String(exact.id);
+  }catch{/* The track lookup below can still resolve this artist. */}
+ }
  let tracks:any[]=[];
  if(/^wy_\d{1,18}$/.test(source)){tracks=await catalogTracks([source.slice(3)],signal)}
- else{const j=await json('/api/search/get/web?'+new URLSearchParams({s:title+' '+artist,type:'1',limit:'30'}),signal);tracks=j.result?.songs||[]}
+ else{const j=await json('/api/search/get/web?'+new URLSearchParams({s:title+' '+artist,type:'1',limit:'100'}),signal);tracks=j.result?.songs||[]}
  const matches=tracks.filter(t=>entityName(t.name||'')===entityName(title)&&splitArtists(artist).every(a=>artists(t).some((b:any)=>entityName(b.name||'')===entityName(a))));
  matches.sort((a,b)=>Number(entityName(album(b).name||'')===entityName(albumName))-Number(entityName(album(a).name||'')===entityName(albumName)));
  for(const t of matches){const entity=kind==='album'?(entityName(album(t).name||'')===entityName(name)?album(t):null):artists(t).find((a:any)=>entityName(a.name||'')===entityName(name));if(entity&&numeric(entity.id))return String(entity.id)}
@@ -25,7 +34,7 @@ export async function GET(request:Request){
  try{const p=new URL(request.url).searchParams,kind=p.get('kind');if(kind!=='artist'&&kind!=='album')throw new EntityError('资料类型无效',400);
   const queryKey='query:'+p.toString(),queryHit=cache.get(queryKey);if(queryHit&&queryHit.until>Date.now())return Response.json(queryHit.value);
   const signal=AbortSignal.any([request.signal,AbortSignal.timeout(18000)]),id=await resolve(p,kind,signal),key=kind+':'+id,hit=cache.get(key);if(hit&&hit.until>Date.now())return Response.json(hit.value);
-  const data=await json('/api/'+kind+'/'+id,signal),entity=data[kind];if(!entity)throw new EntityError('资料不存在或暂时不可访问',404);
+  const data=await json(kind==='album'?'/api/v1/album/'+id:'/api/artist/'+id,signal),entity=data[kind];if(!entity)throw new EntityError('资料不存在或暂时不可访问',404);
   const tracks=(kind==='artist'?data.hotSongs:data.songs||entity.songs)||[];
   const valid=tracks.filter((s:any)=>numeric(s.id)&&s.name),seen=new Set<string>();
   const result:MusicEntity={kind,id,name:String(entity.name||''),cover:picture(entity.picUrl||entity.img1v1Url||entity.blurPicUrl),description:String(entity.briefDesc||entity.description||'').replace(/<[^>]*>/g,'').slice(0,3000),published:kind==='album'?entity.publishTime:undefined,artists:kind==='album'?(entity.artists||[entity.artist]).filter((a:any)=>a&&numeric(a.id)).map((a:any)=>({id:String(a.id),name:String(a.name||'')})):[],albums:[],songs:valid.slice(0,500).map(song),total:Number(kind==='album'?entity.size:entity.musicSize)||valid.length};
