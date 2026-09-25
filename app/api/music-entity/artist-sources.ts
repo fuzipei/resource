@@ -24,7 +24,7 @@ async function qq(name:string,signal:AbortSignal):Promise<MusicEntity>{
  const request={comm:{ct:24,cv:0},singerSongList:{method:'GetSingerSongList',module:'musichall.song_list_server',param:{order:1,singerMid:mid,begin:0,num:50}}};
  const result=await json('https://u.y.qq.com/cgi-bin/musicu.fcg?'+new URLSearchParams({data:JSON.stringify(request)}),signal,{Referer:'https://y.qq.com/'});
  const data=result.singerSongList?.data||{};
- const songs:Song[]=(data.songList||[]).map((item:any)=>item.songInfo||item).filter((s:any)=>/^[a-zA-Z0-9]{8,32}$/.test(String(s.mid||''))&&s.name).map((s:any)=>{const seconds=number(s.interval),album=s.album||{};return {id:'qq_'+s.mid,provider:'at38',title:String(s.name),artist:(s.singer||[]).map((a:any)=>a.name).join(' / ')||name,album:String(album.name||''),cover:https(album.mid?'https://y.qq.com/music/photo_new/T002R300x300M000'+album.mid+'.jpg':''),duration:duration(seconds),durationMs:seconds*1000}});
+ const songs:Song[]=(data.songList||[]).map((item:any)=>item.songInfo||item).filter((s:any)=>/^[a-zA-Z0-9]{8,32}$/.test(String(s.mid||''))&&s.name).map((s:any)=>{const seconds=number(s.interval),album=s.album||{};return {id:'qq_'+s.mid,provider:'at38',title:String(s.name),artist:(s.singer||[]).map((a:any)=>a.name).join(' / ')||name,album:String(album.name||''),cover:https(album.mid?'https://y.gtimg.cn/music/photo_new/T002R300x300M000'+album.mid+'.jpg':''),duration:duration(seconds),durationMs:seconds*1000}});
  if(!songs.length)throw Error('QQ artist songs unavailable');
  return base('qq',mid,String(artist.singerName),https(artist.singerPic||'https://y.qq.com/music/photo_new/T001R300x300M000'+mid+'.jpg'),'',songs,number(data.totalNum||artist.songNum));
 }

@@ -1,7 +1,7 @@
 'use client';
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {useEffect,useState,useRef} from 'react';
-import {artworkSize} from './artwork-size';
+import {artworkCandidates} from './artwork-candidates';
 import {Music2} from 'lucide-react';
 import type {Song} from './music-types';
 const cache=new Map<string,{until:number;url:string}>();
@@ -34,9 +34,13 @@ export function Artwork({song,large=false}:{song?:Song;large?:boolean}){
  useEffect(()=>{const element=container.current;if(!element)return;if(typeof IntersectionObserver==='undefined'){setVisible(true);return}const observer=new IntersectionObserver(entries=>setVisible(entries[0].isIntersecting),{rootMargin:'160px'});observer.observe(element);return()=>observer.disconnect()},[]);
  const [failed,setFailed]=useState<string[]>([]),[matched,setMatched]=useState<{key:string;url:string}|null>(null);
  const params=song?new URLSearchParams({v:'2',id:song.id,title:song.title,artist:song.artist,album:song.album||''}).toString():'';
+ useEffect(()=>setFailed([]),[params]);
  const original=song?.cover&&!song.cover.includes('at38.cn')?song.cover:'';
  const replacement=matched?.key===params?matched.url:'';
- const url=original&&!failed.includes(original)?original:replacement&&!failed.includes(replacement)?replacement:'';
- useEffect(()=>{if(!visible||!params||(original&&!failed.includes(original)))return;const controller=new AbortController();lookup(params,controller.signal).then(url=>{if(!controller.signal.aborted)setMatched({key:params,url})}).catch(()=>{});return()=>controller.abort()},[params,original,failed,visible]);
- return <div ref={container} className={`song-art ${large?'large-art':''}`}>{visible&&url?<img key={url} src={artworkSize(url,large?800:160)} alt="" loading={large?'eager':'lazy'} decoding="async" onError={()=>setFailed(list=>list.includes(url)?list:[...list.slice(-3),url])}/>:<><span className="art-sun"/><Music2 aria-hidden="true"/></>}</div>;
+ const size=large?800:160;
+ const direct=artworkCandidates(original,size),backup=artworkCandidates(replacement,size);
+ const directRemaining=direct.some(src=>!failed.includes(src));
+ const url=[...new Set([...direct,...backup])].find(src=>!failed.includes(src))||'';
+ useEffect(()=>{if(!visible||!params||directRemaining)return;const controller=new AbortController();lookup(params,controller.signal).then(url=>{if(!controller.signal.aborted)setMatched({key:params,url})}).catch(()=>{});return()=>controller.abort()},[params,directRemaining,visible]);
+ return <div ref={container} className={`song-art ${large?'large-art':''}`}>{visible&&url?<img key={url} src={url} alt="" loading={large?'eager':'lazy'} decoding="async" onError={()=>setFailed(list=>list.includes(url)?list:[...list.slice(-11),url])}/>:<><span className="art-sun"/><Music2 aria-hidden="true"/></>}</div>;
 }
