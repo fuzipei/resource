@@ -1,4 +1,5 @@
 import {catalogTracks} from '../music/catalog-tracks';
+import {artistFromSources} from './artist-sources';
 import {entityName,splitArtists,type MusicEntity,type EntityKind} from '../../music-entity-types';
 import type {Song} from '../../music-types';
 class EntityError extends Error{constructor(message:string,public status=503){super(message)}}
@@ -33,7 +34,15 @@ async function resolve(p:URLSearchParams,kind:EntityKind,signal:AbortSignal){
 export async function GET(request:Request){
  try{const p=new URL(request.url).searchParams,kind=p.get('kind');if(kind!=='artist'&&kind!=='album')throw new EntityError('资料类型无效',400);
   const queryKey='query:'+p.toString(),queryHit=cache.get(queryKey);if(queryHit&&queryHit.until>Date.now())return Response.json(queryHit.value);
-  const signal=AbortSignal.any([request.signal,AbortSignal.timeout(18000)]),id=await resolve(p,kind,signal),key=kind+':'+id,hit=cache.get(key);if(hit&&hit.until>Date.now())return Response.json(hit.value);
+  const signal=AbortSignal.any([request.signal,AbortSignal.timeout(18000)]);
+  if(kind==='artist'&&!p.get('id')){
+   const name=(p.get('name')||'').trim(),songId=p.get('songId')||'';
+   if(!name||name.length>100||songId.length>300)throw new EntityError('歌手名称无效',400);
+   const artist=await artistFromSources(name,songId,signal);
+   if(artist){while(cache.size>=99)cache.delete(cache.keys().next().value!);cache.set(queryKey,{value:artist,until:Date.now()+300000});return Response.json(artist)}
+   throw new EntityError('暂时无法获取这位歌手的资料，请稍后重试',503);
+  }
+  const id=await resolve(p,kind,signal),key=kind+':'+id,hit=cache.get(key);if(hit&&hit.until>Date.now())return Response.json(hit.value);
   const data=await json(kind==='album'?'/api/v1/album/'+id:'/api/artist/'+id,signal),entity=data[kind];if(!entity)throw new EntityError('资料不存在或暂时不可访问',404);
   const tracks=(kind==='artist'?data.hotSongs:data.songs||entity.songs)||[];
   const valid=tracks.filter((s:any)=>numeric(s.id)&&s.name),seen=new Set<string>();
