@@ -10,10 +10,11 @@ const key=(s:Song)=>s.provider+':'+s.id;
 const seconds=(s:Song)=>s.durationMs?s.durationMs/1000:(s.duration||'').split(':').reduce((n,v)=>n*60+(Number(v)||0),0);
 const duration=(s:Song)=>{const t=seconds(s);return t?`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`:'—'};
 function Cover({songs}:{songs:Song[]}){return <div className={`playlist-art ${songs.length>=4?'collage':''}`}>{songs.length?(songs.length>=4?songs.slice(0,4):songs.slice(0,1)).map((s,i)=><Artwork key={i} song={s}/>):<Music2 size={64}/>}</div>}
-export function PersonalPlaylists({visible=true,account:a,play,shuffle,current,playing,toggle,shareSong}:{visible?:boolean;account:Account;play:(s:Song,list:Song[])=>void;shuffle:(songs:Song[])=>void;current:Song|null;playing:boolean;toggle:()=>void;shareSong:(song:Song)=>void}){
- const [selected,setSelected]=useState(''),[name,setName]=useState(''),[query,setQuery]=useState(''),[tab,setTab]=useState('all'),[sort,setSort]=useState('default'),[batch,setBatch]=useState(false),[checked,setChecked]=useState<string[]>([]);
+export function PersonalPlaylists({visible=true,navigationSelection='',onNavigate,account:a,play,shuffle,current,playing,toggle,shareSong}:{visible?:boolean;navigationSelection?:string;onNavigate?:(id:string)=>void;account:Account;play:(s:Song,list:Song[])=>void;shuffle:(songs:Song[])=>void;current:Song|null;playing:boolean;toggle:()=>void;shareSong:(song:Song)=>void}){
+ const [selected,setSelectedState]=useState(''),[name,setName]=useState(''),[query,setQuery]=useState(''),[tab,setTab]=useState('all'),[sort,setSort]=useState('default'),[batch,setBatch]=useState(false),[checked,setChecked]=useState<string[]>([]);
+ function setSelected(id:string){setSelectedState(id);onNavigate?.(id)}
  const p=a.library.playlists.find(p=>p.id===selected);
- useEffect(()=>{setSelected('')},[a.user?.id]);useEffect(()=>{setQuery('');setTab('all');setSort('default');setBatch(false);setChecked([])},[selected]);
+ useEffect(()=>{setSelectedState(navigationSelection)},[a.user?.id,navigationSelection]);useEffect(()=>{setQuery('');setTab('all');setSort('default');setBatch(false);setChecked([])},[selected]);
  const favoriteKeys=useMemo(()=>new Set(a.library.favorites.map(key)),[a.library.favorites]);
  const liked=useCallback((s:Song)=>favoriteKeys.has(key(s)),[favoriteKeys]);
  const all=p?.songs||[];

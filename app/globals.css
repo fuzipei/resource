@@ -420,3 +420,10 @@
 .service-notice .notice-accept:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
 @media(max-width:480px){.service-notice{padding:24px;border-radius:22px}.service-notice #service-notice-body{padding:16px;font-size:14px}}
 @media(prefers-reduced-motion:reduce){.service-notice .notice-accept,.service-notice .notice-accept svg{transition:none!important;transform:none!important}}
+.page-history-controls{display:flex;align-items:center;gap:2px;flex:none;padding:3px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.page-history-controls button{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;color:var(--foreground);transition:background .16s,color .16s}
+.page-history-controls button:not(:disabled):hover{background:var(--primary);color:var(--on-primary,#fff)}
+.page-history-controls button:disabled{opacity:.34;cursor:default}
+.page-history-controls button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media(max-width:767px){.page-history-controls{gap:0;padding:1px;border:0;background:transparent}.page-history-controls button{width:27px;height:32px}.page-history-controls svg{width:17px}.music-topbar{gap:8px}}
+@media(max-width:390px){.music-topbar h1{font-size:19px}.music-topbar p{display:none}.page-history-controls button{width:25px}.music-topbar .music-avatar.login-entry{min-width:72px;padding:0 10px}}
