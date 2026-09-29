@@ -1,6 +1,13 @@
 export type LyricWord={time:number;end?:number;text:string};
-export type LyricLine={time:number;end?:number;text:string;words?:LyricWord[]};
+export type LyricLine={time:number;end?:number;text:string;words?:LyricWord[];translation?:string};
 export type Glyph={text:string;time:number;end:number};
+/** Ignore incidental English words in lyrics that are otherwise Chinese. */
+export function isNonChineseLyricText(text:string){
+ if(/[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(text))return true;
+ const letters=[...text].filter(char=>/\p{L}/u.test(char));
+ const chinese=letters.filter(char=>/\p{Script=Han}/u.test(char)).length;
+ return letters.length>0&&letters.length-chinese>chinese;
+}
 const segmenter=new Intl.Segmenter('zh',{granularity:'grapheme'});
 const split=(text:string)=>Array.from(segmenter.segment(text),part=>part.segment);
 export const clampLyricOffset=(value:number)=>Number.isFinite(value)?Math.round(Math.max(-10,Math.min(10,value))*10)/10:0;

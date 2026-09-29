@@ -1,21 +1,24 @@
 import {parseLyrics,type Lyrics} from './parse';
 import {parseYrc} from './yrc';
+import {withTranslations} from './translation';
 const empty:Lyrics={lines:[],text:''};const cache=new Map<string,{value:Lyrics;until:number}>();
 const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 async function json(url:string){const r=await fetch(url,{signal:AbortSignal.timeout(9000)});if(!r.ok)throw Error('Lyrics unavailable');return r.json() as Promise<any>}
 async function native(id:string):Promise<Lyrics>{
  if(/^wy_\d{1,20}$/.test(id)){
   try{const j=await json('https://music.163.com/api/song/lyric/v1?'+new URLSearchParams({id:id.slice(3),lv:'-1',kv:'-1',tv:'-1',rv:'-1',yv:'-1',ytv:'-1',yrv:'-1'}));
-   const timed=parseYrc(String(j.yrc?.lyric||''));if(timed.lines.length)return timed;
-   const plain=parseLyrics(String(j.lrc?.lyric||''));if(plain.lines.length||plain.text)return plain;
+   const translated=[String(j.ytlrc?.lyric||''),String(j.tlyric?.lyric||'')];
+   const timed=parseYrc(String(j.yrc?.lyric||''));if(timed.lines.length)return withTranslations(timed,...translated);
+   const plain=parseLyrics(String(j.lrc?.lyric||''));if(plain.lines.length||plain.text)return withTranslations(plain,...translated);
   }catch{}
-  const j=await json('https://music.163.com/api/song/lyric?id='+id.slice(3)+'&lv=1');return parseLyrics(String(j.lrc?.lyric||''));
+  const j=await json('https://music.163.com/api/song/lyric?id='+id.slice(3)+'&lv=1&tv=-1');return withTranslations(parseLyrics(String(j.lrc?.lyric||'')),String(j.tlyric?.lyric||''));
  }
  if(/^qq_[a-zA-Z0-9]{10,30}$/.test(id)){
  const data={req_0:{module:'music.musichallSong.PlayLyricInfo',method:'GetPlayLyricInfo',param:{songMID:id.slice(3)}}};
  const j=await json('https://u.y.qq.com/cgi-bin/musicu.fcg?data='+encodeURIComponent(JSON.stringify(data)));const d=j.req_0?.data;
  if(j.req_0?.code!==0||!d?.lyric||d.crypt||d.qrc)return empty;
- return parseLyrics(new TextDecoder().decode(Uint8Array.from(atob(d.lyric),c=>c.charCodeAt(0))));
+ const decode=(value:unknown)=>{try{return typeof value==='string'?new TextDecoder().decode(Uint8Array.from(atob(value),c=>c.charCodeAt(0))):''}catch{return ''}};
+ return withTranslations(parseLyrics(decode(d.lyric)),decode(d.trans));
  }return empty;
 }
 export async function GET(request:Request){

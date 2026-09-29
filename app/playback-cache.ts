@@ -1,4 +1,5 @@
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
+import {audioFormat} from './audio-quality-options';
 ﻿import type {Song,Quality} from './music-types';
 export type Playback={qualities?:Quality[];error?:string;code?:string;ok:boolean;expectedDuration?:number};
 const cache=new Map<string,{until:number;value:Promise<Playback>}>();
@@ -31,7 +32,7 @@ export function resolvePlayback(song:Song,signal?:AbortSignal):Promise<Playback>
  const durationPromise=known>0?Promise.resolve(known):/^(wy_\d+|qq_[a-zA-Z0-9]+)$/.test(song.id)?fetchJsonWithTimeout('/api/durations?'+new URLSearchParams({ids:song.id}),{cache:'no-store',signal:controller.signal},8000).then(r=>r.data).then((j:any)=>Number(j.durations?.[song.id])/1000||0).catch(()=>0):Promise.resolve(0);
  const params={id:song.id,title:song.title,artist:song.artist,duration:String(known),q:(song.keyword||`${song.title} ${song.artist}`).slice(0,100)};
  let missingDuration=false;
- const jobs=['at38','coco','gd','gequhai'].map(async(source,index)=>{
+ const jobs=['at38','coco','gd','gequhai','qqmp3','buguyy'].map(async(source,index)=>{
  await new Promise<void>((resolve,reject)=>{if(controller.signal.aborted){reject(Error('Cancelled'));return}const abort=()=>{clearTimeout(timer);reject(Error('Cancelled'))};const timer=setTimeout(()=>{controller.signal.removeEventListener('abort',abort);resolve()},index*900);controller.signal.addEventListener('abort',abort,{once:true})});
  const r=await fetchJsonWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:controller.signal},18000);const j=r.data as {qualities?:Quality[];expectedDuration?:number};if(!r.ok||!j.qualities?.length)throw Error('No audio');
  for(const quality of j.qualities){if(failed.get(key)?.has(quality.url))continue;try{const expected=known||j.expectedDuration||await durationPromise;if(!Number.isFinite(expected)||expected<=0){missingDuration=true;throw Error('Duration unavailable')}await checkAudio(quality.url,expected,controller.signal);return {ok:true,qualities:[quality],expectedDuration:expected}}catch{if(controller.signal.aborted)throw Error('Cancelled')}}throw Error('No playable audio');
@@ -44,6 +45,31 @@ export function resolvePlayback(song:Song,signal?:AbortSignal):Promise<Playback>
 
 
 
+// Resolve more MP3 sources after playback starts. Only verified URLs become choices.
+export async function discoverMp3(song:Song,known:Quality[],signal:AbortSignal,onQuality:(quality:Quality)=>void){
+ const expected=(song.durationMs||0)/1000;
+ if(!expected||signal.aborted)return;
+ const seen=new Set(known.filter(q=>audioFormat(q)==='MP3').map(q=>q.url));
+ if(seen.size>=2)return;
+ const controller=new AbortController(),combined=AbortSignal.any([signal,controller.signal]);
+ const params={id:song.id,title:song.title,artist:song.artist,duration:String(expected),q:(song.keyword||`${song.title} ${song.artist}`).slice(0,100)};
+ await Promise.allSettled(['at38','coco','gd','gequhai','qqmp3','buguyy'].map(async(source,index)=>{
+  if(index)await new Promise(resolve=>setTimeout(resolve,index*350));
+  if(combined.aborted)return;
+  const r=await fetchJsonWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:combined},18000);
+  if(!r.ok)return;
+  const j=r.data as Playback;
+  for(const quality of j.qualities||[]){
+   if(combined.aborted||audioFormat(quality)!=='MP3'||seen.has(quality.url)||failed.get(cacheKey(song))?.has(quality.url))continue;
+   try{await checkAudio(quality.url,expected,combined)}catch{continue}
+   if(combined.aborted||seen.has(quality.url))return;
+   seen.add(quality.url);onQuality(quality);
+   if(seen.size>=2)controller.abort();
+   return;
+  }
+ }));
+}
+
 // Enrichment is independent of the fast first-play race and never changes selection.
 export async function discoverLossless(song:Song,signal:AbortSignal,onQuality:(quality:Quality)=>void){
  const expected=(song.durationMs||0)/1000;
@@ -55,7 +81,7 @@ export async function discoverLossless(song:Song,signal:AbortSignal,onQuality:(q
   const j=r.data as Playback;
   for(const quality of j.qualities||[]){
    if(signal.aborted)return;
-   if(!['audio/flac','audio/wav'].includes(quality.mime||'')||failed.get(cacheKey(song))?.has(quality.url))continue;
+   if(audioFormat(quality)!=='FLAC'||failed.get(cacheKey(song))?.has(quality.url))continue;
    const support=new Audio().canPlayType(quality.mime!);if(!support)continue;
    // Do not open additional FLAC/WAV decoders while another song plays.
    // The main player validates duration when the user selects this quality.

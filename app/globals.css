@@ -425,5 +425,6 @@
 .page-history-controls button:not(:disabled):hover{background:var(--primary);color:var(--on-primary,#fff)}
 .page-history-controls button:disabled{opacity:.34;cursor:default}
 .page-history-controls button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.immersive-player .page-history-controls{display:none}
 @media(max-width:767px){.page-history-controls{gap:0;padding:1px;border:0;background:transparent}.page-history-controls button{width:27px;height:32px}.page-history-controls svg{width:17px}.music-topbar{gap:8px}}
 @media(max-width:390px){.music-topbar h1{font-size:19px}.music-topbar p{display:none}.page-history-controls button{width:25px}.music-topbar .music-avatar.login-entry{min-width:72px;padding:0 10px}}
