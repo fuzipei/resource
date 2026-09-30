@@ -41,7 +41,7 @@
 .lyric-mode-select option{background:var(--popover,#fff);color:var(--foreground,#24392f)}
 .lyric-mode-select:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .scroll-lyric-text{white-space:pre-wrap}
-.lyric-translation{display:block;margin-top:.12em;font-size:clamp(13px,.52em,18px);font-weight:500;line-height:1.5;color:var(--secondary);opacity:.9;white-space:pre-wrap}
+.lyric-translation{display:block;margin-top:.12em;font-size:clamp(15px,.62em,21px);font-weight:500;line-height:1.5;color:var(--secondary);opacity:.9;white-space:pre-wrap}
 .active-lyric .lyric-translation{color:var(--foreground);opacity:.78}
 .player-main .lyric-mode-scroll .timed-lyrics>.active-lyric{color:var(--primary,#3b5949);text-shadow:none}
 .lyric-follow-status{bottom:50px;max-width:calc(100% - 20px)}
