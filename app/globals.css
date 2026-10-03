@@ -1,4 +1,4 @@
-﻿@import 'tailwindcss';
+@import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
@@ -428,3 +428,4 @@
 .immersive-player .page-history-controls{display:none}
 @media(max-width:767px){.page-history-controls{gap:0;padding:1px;border:0;background:transparent}.page-history-controls button{width:27px;height:32px}.page-history-controls svg{width:17px}.music-topbar{gap:8px}}
 @media(max-width:390px){.music-topbar h1{font-size:19px}.music-topbar p{display:none}.page-history-controls button{width:25px}.music-topbar .music-avatar.login-entry{min-width:72px;padding:0 10px}}
+.playback-shortcut-list{display:grid;gap:12px;margin-top:20px}.playback-shortcut-list>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)}.playback-shortcut-list>div:last-child{border-bottom:0}.playback-shortcut-list dt{font-size:14px}.playback-shortcut-list dd{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--secondary)}.playback-shortcut-list kbd{padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--soft);color:var(--foreground);font-family:inherit;white-space:nowrap}@media(max-width:600px){.playback-shortcut-list>div{align-items:flex-start}.playback-shortcut-list dd{max-width:65%}}
