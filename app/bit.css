@@ -83,3 +83,25 @@
 [data-skin=bit-neon][data-theme=light]{--background:#0a1b34;--surface:#10243f;--glass:#0b1c38;--soft:#15233f}
 [data-skin=bit-snow][data-theme]{--bit-art:url('/skins/bit-snow.webp');--bit-frame:url('/skins/bit-snow-frame.svg');--background:#071a36;--foreground:#eef4ff;--primary:#96e8ff;--secondary:#b0c4e5;--muted:#173354;--border:#4578a4;--popover:#173553;--soft:#14314e;--surface:#102c48;--glass:#0d2845;--skin-tint:#173762;--skin-night:#071a36;--skin-bright:#eef4ff;--bit-active:#2862b1;--bit-accent:#80dfff;--bit-track:#274d7c;--bit-thumb-edge:#d6f4ff;--scene:url('/skins/bit-snow-scene.svg')}
 [data-skin=bit-snow][data-theme=light]{--background:#0d2845;--surface:#173553;--glass:#102c48;--soft:#173354}
+
+/* Compact artwork avoids decoding desktop backgrounds on phone screens. */
+@media(max-width:600px){
+ [data-skin=bit][data-theme]{--bit-art:url('/skins/bit-city-mobile.webp')}
+ [data-skin=bit-sakura][data-theme]{--bit-art:url('/skins/bit-sakura-mobile.webp')}
+ [data-skin=bit-forest][data-theme]{--bit-art:url('/skins/bit-forest-mobile.webp')}
+ [data-skin=bit-neon][data-theme]{--bit-art:url('/skins/bit-neon-mobile.webp')}
+ [data-skin=bit-snow][data-theme]{--bit-art:url('/skins/bit-snow-mobile.webp')}
+ [data-skin-category=bit] .home-welcome{padding:20px;min-height:330px;background-position:72% center}
+ [data-skin-category=bit] .home-welcome-copy{max-width:100%;padding-bottom:86px}
+ [data-skin-category=bit] .home-welcome h2{font-size:clamp(24px,6.4vw,29px);line-height:1.35;letter-spacing:0}
+ [data-skin-category=bit] .home-daily-card{left:20px;right:20px;bottom:16px;max-width:calc(100% - 40px)}
+ [data-skin-category=bit] .home-hero-actions{flex-wrap:wrap;gap:10px}
+ [data-skin-category=bit] .home-hero-actions button{padding:10px 12px}
+ [data-skin-category=bit] .skin-card{min-width:0}
+ [data-skin-category=bit] .skin-card-title,[data-skin-category=bit] .skin-description{overflow-wrap:anywhere}
+}
+[data-skin-category=bit] .scene-preview .skin-preview-nav{backdrop-filter:none}
+[data-skin-category=bit] .skin-preview.scene-preview{color:#eef4ff!important}
+[data-skin-category=bit] .scene-preview .skin-preview-nav{background:#06102090}
+[data-skin-category=bit] .scene-preview .skin-preview-content{background:#0610204d}
+[data-skin-category=bit] .scene-preview .preview-night{background:#061020cc;color:#eef4ff}
