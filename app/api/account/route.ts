@@ -53,7 +53,7 @@ async function handle(r:Request){
  }
  if(!uid||!user)throw new InputError('请先登录',401);
  if(action==='import-details')return reply({tracks:await readNeteaseTracks(body.ids)});
- if(action==='import-read')try{return reply(await readExternal(String(body.url||'').slice(0,2000)))}catch(e){throw new InputError((e as Error).message)};
+ if(action==='import-read')try{return reply(await readExternal(String(body.url||'').slice(0,2000)))}catch(e){const error=e as Error;throw new InputError(error.name==='TimeoutError'||error.name==='AbortError'?'歌单平台响应超时，请重试或使用 CSV / JSON 文件导入。':error.message)};
  if(action==='import-match'){
  const tracks=validateTracks(body.tracks);if(tracks.length>3)throw new InputError('每批最多匹配 3 首');
  const items=await Promise.all(tracks.map(async t=>{let candidate;try{const found=await searchAt38((t.title+' '+t.artist).slice(0,100),1);candidate=found.items.find(x=>exactTrack(t,x))}catch{}return candidate?{...candidate,title:t.title,artist:t.artist,durationMs:t.durationMs||0,album:t.album||candidate.album,importStatus:'matched',keyword:(t.title+' '+t.artist).slice(0,100)}:{id:'missing_'+randomBytes(12).toString('hex'),provider:'at38',title:t.title,artist:t.artist,album:t.album||'',cover:'',duration:'',importStatus:'unmatched'}}));return reply({items});
