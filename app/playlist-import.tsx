@@ -1,4 +1,5 @@
 'use client';
+import {sourceUrl} from './playlist-import/sync-model';
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {useEffect,useRef,useState} from 'react';
 import {parseTrackFile,validateTracks,type ExternalPlaylist} from './playlist-import/model';
@@ -23,7 +24,7 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
    if(file&&file.size>20*1024*1024)throw Error('单个文件不能超过 20MB');
    const data:ExternalPlaylist=file?{name:file.name.replace(/\.(csv|json)$/i,''),source:'文件导入',tracks:parseTrackFile(await file.text())}:await request({action:'import-read',url},controller.signal);
    if(task!==run.current)return;
-   const remaining=data.remainingIds||[];setTotal(data.totalCount||data.tracks.length);setCompleted(data.tracks.length);
+   data.sourceUrl=file?undefined:sourceUrl(url);const remaining=data.remainingIds||[];setTotal(data.totalCount||data.tracks.length);setCompleted(data.tracks.length);
    const pages:typeof data.tracks[]=[];let nextPage=0,readCount=data.tracks.length;
    await Promise.all(Array.from({length:2},async()=>{while(nextPage*200<remaining.length){const index=nextPage++;const page=await request({action:'import-details',ids:remaining.slice(index*200,(index+1)*200)},controller.signal);if(task!==run.current)return;if(!Array.isArray(page.tracks))throw Error('歌曲资料返回不完整，请重试');pages[index]=page.tracks;readCount+=page.tracks.length;setCompleted(readCount)}}));
    if(task!==run.current)return;for(const page of pages)data.tracks.push(...page);
@@ -39,7 +40,7 @@ export function PlaylistImport({owner,onSave}:{owner:string;onSave:(data:Record<
  async function save(){
   if(!list||busy||saving.current||songs.length!==list.tracks.length||!songs.length||list.warning&&!confirmed)return;
   const task=run.current;saving.current=true;setSavedCount(0);setPhase('saving');setError('');
-  try{await onSave({action:'import-save',importId:importKey.current,name:list.name,source:list.source,songs},count=>{if(task===run.current)setSavedCount(count)});if(task===run.current){setOpen(false);setList(null);setSongs([]);setPhase('idle')}}
+  try{await onSave({action:'import-save',importId:importKey.current,name:list.name,source:list.source,sourceUrl:list.sourceUrl,songs},count=>{if(task===run.current)setSavedCount(count)});if(task===run.current){setOpen(false);setList(null);setSongs([]);setPhase('idle')}}
   catch(e){if(task===run.current){setError(e instanceof Error?e.message:'保存失败，请重试');setPhase('ready')}}
   finally{if(task===run.current)saving.current=false}
  }

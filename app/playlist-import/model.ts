@@ -1,5 +1,5 @@
-﻿export type ExternalTrack={title:string;artist:string;album?:string;durationMs?:number;catalogId?:string};
-export type ExternalPlaylist={name:string;tracks:ExternalTrack[];source:string;warning?:string;remainingIds?:string[];totalCount?:number};
+export type ExternalTrack={title:string;artist:string;album?:string;durationMs?:number;catalogId?:string};
+export type ExternalPlaylist={name:string;tracks:ExternalTrack[];source:string;sourceUrl?:string;warning?:string;remainingIds?:string[];totalCount?:number};
 export const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]/gu,'');
 const artists=(s:string)=>s.normalize('NFKC').split(/\s*(?:、|,|，|;|；|\s&\s|\s\/\s)\s*/).map(normalize).filter(Boolean).sort().join('|');
 export function exactTrack(a:ExternalTrack,b:ExternalTrack){return !!normalize(a.title)&&!!artists(a.artist)&&!['未知艺人','未知歌手','unknown'].includes(a.artist.toLowerCase())&&normalize(a.title)===normalize(b.title)&&artists(a.artist)===artists(b.artist)&&(!a.durationMs||!b.durationMs||Math.abs(a.durationMs-b.durationMs)<Math.max(10000,a.durationMs*.05))}

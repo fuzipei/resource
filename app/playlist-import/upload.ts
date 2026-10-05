@@ -8,5 +8,5 @@ export function importBatch(body:Record<string,unknown>,songs:Song[],offset:numb
   durationMs:Number.isFinite(s.durationMs)?s.durationMs:0,keyword:text(s.keyword,100),
   ...(s.importStatus==='matched'||s.importStatus==='unmatched'?{importStatus:s.importStatus}:{})
  }));
- return {action:'import-save',importId:text(body.importId,80),name:text(body.name,60),source:text(body.source,40),songs:batch,offset,total:songs.length};
+ return {action:'import-save',importId:text(body.importId,80),name:text(body.name,60),source:text(body.source,40),sourceUrl:text(body.sourceUrl,2000),songs:batch,offset,total:songs.length};
 }
