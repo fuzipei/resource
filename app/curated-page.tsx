@@ -1,4 +1,5 @@
 'use client';
+import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {artworkSize} from './artwork-size';
 
 import {cachedCurated,getCuratedCatalog} from './curated-cache';
@@ -13,7 +14,7 @@ export function CuratedPage({onOpen,recent,play}:{onOpen:(mix:Mix)=>void;recent:
  const [feed,setFeed]=useState<CuratedFeed|null>(cachedCurated),[error,setError]=useState(''),[busy,setBusy]=useState(false),[opening,setOpening]=useState(''),[rotation,setRotation]=useState(0),[expanded,setExpanded]=useState('');const controller=useRef<AbortController|null>(null);
  async function load(signal?:AbortSignal){setBusy(true);setError('');try{const j=await getCuratedCatalog(signal,!signal);if(!signal?.aborted)setFeed(j)}catch(e){if(!signal?.aborted)setError((e as Error).message)}finally{if(!signal?.aborted)setBusy(false)}}
  useEffect(()=>{const c=new AbortController();void load(c.signal);return()=>{c.abort();controller.current?.abort()}},[]);
- async function open(p:CuratedPlaylist){controller.current?.abort();const c=new AbortController();controller.current=c;setOpening(p.id);setError('');try{const r=await fetch('/api/curated?id='+p.id,{signal:c.signal});const j=await r.json() as Mix&{error?:string};if(!r.ok||!j.songs?.length)throw Error(j.error||'这个歌单暂时没有可播放曲目');if(!c.signal.aborted)onOpen(j)}catch(e){if(!c.signal.aborted)setError((e as Error).message)}finally{if(!c.signal.aborted)setOpening('')}}
+ async function open(p:CuratedPlaylist){controller.current?.abort();const c=new AbortController();controller.current=c;setOpening(p.id);setError('');try{const r=await fetchJsonWithTimeout<Mix&{error?:string}>('/api/curated?id='+p.id,{signal:c.signal},25000);const j=r.data;if(!r.ok||!j.songs?.length)throw Error(j.error||'这个歌单暂时没有可播放曲目');if(!c.signal.aborted)onOpen(j)}catch(e){if(!c.signal.aborted)setError((e as Error).message)}finally{if(!c.signal.aborted)setOpening('')}}
  const pick=(cat:string)=>{const rows=feed?.groups[cat]||[];return rows.length?rows[rotation%rows.length]:undefined};
  const tile=(cat:string,style='scene')=>{const p=pick(cat);return <button key={cat} className={`curated-tile ${style}`} disabled={!p||!!opening} onClick={()=>p&&void open(p)}>{p&&<Picture url={p.cover}/>}<span className="curated-tile-copy"><b>{cat==='地铁'?'通勤必听':cat==='浪漫'?'恋爱':cat}</b><small>{p?.title||'暂未获取到歌单'}</small>{p&&<em><Headphones size={12}/>{count(p.plays)}</em>}</span></button>};
  const heading=(title:string,subtitle:string,id:string)=><div className="curated-heading"><h2>{title}</h2><p>{subtitle}</p><button onClick={()=>setExpanded(expanded===id?'':id)}>{expanded===id?'收起':'查看更多'}<ChevronRight size={15}/></button></div>;

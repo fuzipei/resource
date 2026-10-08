@@ -14,7 +14,7 @@ function slot(signal:AbortSignal):Promise<()=>void>{return new Promise((resolve,
  if(signal.aborted){reject(Error('Cancelled'));return}if(running<4)start();else if(waiting.length<48){waiting.push(start);signal.addEventListener('abort',abort,{once:true})}else reject(Error('Artwork queue full'));
 })}
 async function requestCover(params:string,signal:AbortSignal){const release=await slot(signal);try{const r=await fetchJsonWithTimeout<{url?:string}>('/api/artwork?'+params,{signal},25000);if(!r.ok)throw Error('Artwork unavailable');return String(r.data.url||'')}finally{release()}}
-function lookup(params:string,signal:AbortSignal):Promise<string>{
+export function lookupArtwork(params:string,signal:AbortSignal):Promise<string>{
  if(signal.aborted)return Promise.reject(Error('Cancelled'));
  const hit=cache.get(params);if(hit&&hit.until>Date.now())return Promise.resolve(hit.url);
  let job=pending.get(params);
@@ -41,6 +41,6 @@ export function Artwork({song,large=false}:{song?:Song;large?:boolean}){
  const direct=artworkCandidates(original,size),backup=artworkCandidates(replacement,size);
  const directRemaining=direct.some(src=>!failed.includes(src));
  const url=[...new Set([...direct,...backup])].find(src=>!failed.includes(src))||'';
- useEffect(()=>{if(!visible||!params||directRemaining)return;const controller=new AbortController();lookup(params,controller.signal).then(url=>{if(!controller.signal.aborted)setMatched({key:params,url})}).catch(()=>{});return()=>controller.abort()},[params,directRemaining,visible]);
+ useEffect(()=>{if(!visible||!params||directRemaining)return;const controller=new AbortController();lookupArtwork(params,controller.signal).then(url=>{if(!controller.signal.aborted)setMatched({key:params,url})}).catch(()=>{});return()=>controller.abort()},[params,directRemaining,visible]);
  return <div ref={container} className={`song-art ${large?'large-art':''}`}>{visible&&url?<img key={url} src={url} alt="" loading={large?'eager':'lazy'} decoding="async" onError={()=>setFailed(list=>list.includes(url)?list:[...list.slice(-11),url])}/>:<><span className="art-sun"/><Music2 aria-hidden="true"/></>}</div>;
 }

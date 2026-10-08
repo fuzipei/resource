@@ -16,7 +16,9 @@ async function persist(db:DB,uid:string,id:string,url:string,change:(p:SyncedPla
 async function resolveTrack(t:ExternalTrack):Promise<Song>{
  if(t.catalogId){const ms=t.durationMs||0;return {id:t.catalogId,provider:'at38',title:t.title,artist:t.artist,album:t.album||'',cover:'',durationMs:ms,duration:ms?Math.floor(ms/60000)+':'+String(Math.floor(ms%60000/1000)).padStart(2,'0'):'',importStatus:'matched'}}
  const candidate=(await searchAt38((t.title+' '+t.artist).slice(0,100),1)).items.find(s=>exactTrack(t,s));
- return candidate?{...candidate,title:t.title,artist:t.artist,importStatus:'matched'}:{id:'missing_'+createHash('sha256').update(sourceTrackKey(t)).digest('hex').slice(0,24),provider:'at38',title:t.title,artist:t.artist,album:t.album||'',cover:'',duration:'',importStatus:'unmatched'};
+ const ms=t.durationMs||0;
+ const duration=ms?Math.floor(ms/60000)+':'+String(Math.floor(ms%60000/1000)).padStart(2,'0'):candidate?.duration||'';
+ return candidate?{...candidate,title:t.title,artist:t.artist,album:t.album||candidate.album,durationMs:ms,duration,importStatus:'matched'}:{id:'missing_'+createHash('sha256').update(sourceTrackKey(t)).digest('hex').slice(0,24),provider:'at38',title:t.title,artist:t.artist,album:t.album||'',cover:'',durationMs:ms,duration,importStatus:'unmatched'};
 }
 // Persist each page and matching batch. A large playlist resumes in subsequent invocations.
 export async function syncStep(db:DB,member:string){
