@@ -2,12 +2,12 @@ import {fetchJsonWithTimeout} from './fetch-with-timeout';
 const incomplete=()=>new Error('账号同步数据接收不完整，已保留当前歌单，请重新加载后重试。');
 async function read(path:string,init:RequestInit,readOnly=false):Promise<any>{
  for(let attempt=0;;attempt++){
-  try{const r=await fetchJsonWithTimeout(path,{...init,cache:'no-store',headers:{...init.headers,'x-resonance-data':'paged-v1'}},30000);if(!r.ok)throw Error(r.data?.error||'账号同步暂时不可用，请稍后重试');return r.data}
+  try{const r=await fetchJsonWithTimeout(path,{...init,cache:'no-store',headers:{...init.headers,'x-resonance-data':'paged-v1','x-resonance-auth':'deferred-v1'}},30000);if(!r.ok)throw Error(r.data?.error||'账号同步暂时不可用，请稍后重试');return r.data}
   catch(error){if(error instanceof SyntaxError){if(readOnly&&attempt===0&&!init.signal?.aborted)continue;throw incomplete()}throw error}
  }
 }
-export async function accountRequest(body?:unknown,signal?:AbortSignal):Promise<any>{
- const response=await read('/api/account',body?{signal,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{signal},!body);
+export async function accountRequest(body?:unknown,signal?:AbortSignal,sessionOnly=false):Promise<any>{
+ const response=await read('/api/account'+(!body&&sessionOnly?'?session=1':''),body?{signal,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{signal},!body);
  if(!response?.transfer)return response;
  const {id,parts,bytes,sha256}=response.transfer;
  if(!/^[a-f0-9]{32}$/.test(id)||!Number.isSafeInteger(parts)||parts<1||!Number.isSafeInteger(bytes)||bytes<1||parts>bytes||!/^([a-f0-9]{64})$/.test(sha256))throw incomplete();

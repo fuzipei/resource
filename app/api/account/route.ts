@@ -1,4 +1,5 @@
 import {after} from 'next/server';
+import {sessionRecord,loginLimits,accountByName,establishSession} from './session-store';
 import {accountDataResponse,accountDataChunk,AccountDataError,usesPagedData} from './data-response';
 import {sourceUrl,sourceTrackKey,managedSongKey,nextSyncTime} from '../../playlist-import/sync-model';
 import {enqueueSync} from '../../playlist-import/sync-service';
@@ -30,15 +31,18 @@ async function handle(r:Request){
  try{
  if(r.method==='POST'&&r.headers.get('origin')!==new URL(r.url).origin)throw new InputError('请求来源不匹配',403);
  const body=r.method==='POST'?await readRequestBody(r):null;
+ const token=cookie(r),sessionKey=token?PREFIX+'session:'+hash(token):'';
+ if(r.method==='GET'&&!token){if(new URL(r.url).searchParams.has('transfer'))throw new InputError('请先登录',401);return reply({user:null,library:null})}
  const url=databaseUrl();
  client=createClient({url,socket:{connectTimeout:8000,reconnectStrategy:false}});await client.connect();const db=client;
- const token=cookie(r),sessionKey=token?PREFIX+'session:'+hash(token):'';const uid=sessionKey?await db.get(sessionKey):null;
+ const [sessionUid,userRaw,revokedRaw,issuedRaw]=await sessionRecord(db,sessionKey,PREFIX),uid=sessionUid||null;
  const read=async(id:string)=>{const raw=await db.get(PREFIX+'library:'+id);return {raw,data:{searches:[],favorites:[],recent:[],playlists:[],...(raw?JSON.parse(raw):{})}}};
- const user=uid?JSON.parse(await db.get(PREFIX+'user:'+uid)||'null'):null;
- const revoked=uid?Number(await db.get(PREFIX+'revoke:'+uid)||0):0;const issued=sessionKey?Number(await db.get(sessionKey+':issued')||0):0;if(user&&(user.disabled||revoked&&issued<=revoked)){if(sessionKey)await db.del(sessionKey);if(r.method==='GET')return reply({user:null,library:null});throw new InputError('Account access revoked',401)}
+ const user=userRaw?JSON.parse(userRaw):null;
+ const revoked=Number(revokedRaw)||0,issued=Number(issuedRaw)||0;if(user&&(user.disabled||revoked&&issued<=revoked)){if(sessionKey)await db.del(sessionKey);if(r.method==='GET')return reply({user:null,library:null});throw new InputError('Account access revoked',401)}
  const safe=user?{id:uid,username:user.username,name:user.name}:null;
  const libraryReply=(library:unknown,owner=uid!,extra:Record<string,unknown>={},headers:Record<string,string>={})=>accountDataResponse(db,r,owner,{...extra,library},headers);
  if(r.method==='GET'&&new URL(r.url).searchParams.has('transfer')){if(!uid||!user)throw new InputError('请先登录',401);return await accountDataChunk(db,r,uid)}
+ if(r.method==='GET'&&new URL(r.url).searchParams.get('session')==='1')return reply({user:safe,libraryPending:!!safe});
  if(r.method==='GET')return uid&&user?await libraryReply((await read(uid)).data,uid,{user:safe}):reply({user:null,library:null});
  const action=body.action;
  if(action==='sync-now'||action==='sync-bind'){if(!uid||!user)throw new InputError('请先登录',401);for(let attempt=0;attempt<8;attempt++){const {raw,data}=await read(uid);const playlist=data.playlists.find((p:any)=>p.id===body.id);if(!playlist)throw new InputError('歌单不存在',404);if(action==='sync-bind'){const url=sourceUrl(body.url);if(!url)throw new InputError('请输入原平台的完整歌单链接');playlist.sync={url,keys:[],baseline:true,status:'pending'}}else{if(!playlist.sync?.url)throw new InputError('请先绑定原歌单链接');playlist.sync.status='pending';playlist.sync.error=''}const ok=await db.eval("if (redis.call('GET',KEYS[1]) or '')~=ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]);return 1",{keys:[PREFIX+'library:'+uid],arguments:[raw||'',JSON.stringify(data)]});if(ok){await enqueueSync(db,uid,playlist.id,Date.now());if(process.env.CRON_SECRET){after(async()=>{const response=await fetch(new URL('/api/playlist-sync',r.url),{headers:{authorization:'Bearer '+process.env.CRON_SECRET},signal:AbortSignal.timeout(55000)});await response.body?.cancel()})}return await libraryReply(data)}}throw new InputError('歌单正在更新，请重试',409)}
@@ -47,15 +51,16 @@ async function handle(r:Request){
  if(action==='login'||action==='register'){
  const username=String(body.username||'').trim().toLowerCase(),password=String(body.password||'');
  if(!/^[a-z0-9_]{3,32}$/.test(username)||password.length<10||password.length>128)throw new InputError('账号须为 3–32 位字母、数字或下划线，密码须为 10–128 位');
- const ip=r.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local';const ipLimit=PREFIX+'ip-limit:'+hash(ip);const ipCount=await db.incr(ipLimit);if(ipCount===1)await db.expire(ipLimit,600);if(ipCount>100)throw new InputError('尝试过于频繁，请十分钟后重试',429);const throttle=PREFIX+'limit:'+hash(ip+username);const attempts=await db.incr(throttle);if(attempts===1)await db.expire(throttle,600);if(attempts>20)throw new InputError('尝试过于频繁，请十分钟后重试',429);
- const needsChallenge=action==='register'?REGISTER_CHALLENGE_REQUIRED:LOGIN_CHALLENGE_REQUIRED;if(action==='register'||needsChallenge){const security=await authConfig();if(needsChallenge)await verifyAuthChallenge(security,r,action,body.turnstileToken);if(action==='register')verifyInvite(security.inviteCode,body.inviteCode);}
- const index=PREFIX+'username:'+username;let id=await db.get(index);let account=id?JSON.parse(await db.get(PREFIX+'user:'+id)||'null'):null;
+ const ip=r.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local';const ipLimit=PREFIX+'ip-limit:'+hash(ip),throttle=PREFIX+'limit:'+hash(ip+username);const [ipCount,attempts]=await loginLimits(db,ipLimit,throttle);if(ipCount>100||attempts>20)throw new InputError('\u5c1d\u8bd5\u8fc7\u4e8e\u9891\u7e41\uff0c\u8bf7\u5341\u5206\u949f\u540e\u91cd\u8bd5',429);
+ const needsChallenge=action==='register'?REGISTER_CHALLENGE_REQUIRED:LOGIN_CHALLENGE_REQUIRED;if(action==='register'||needsChallenge){const security=await authConfig(db);if(needsChallenge)await verifyAuthChallenge(security,r,action,body.turnstileToken);if(action==='register')verifyInvite(security.inviteCode,body.inviteCode);}
+ const index=PREFIX+'username:'+username;const [foundId,accountRaw]=await accountByName(db,index,PREFIX);let id=foundId||null;let account=accountRaw?JSON.parse(accountRaw):null;
  if(action==='register'){
  if(id)throw new InputError('这个账号已被使用',409);
  id=randomBytes(16).toString('hex');const salt=randomBytes(16).toString('hex');account={createdAt:Date.now(),username,name:String(body.name||username).trim().slice(0,40)||username,salt,password:((await deriveKey(password,salt,64)) as Buffer).toString('hex')};
  const created=await db.eval("if redis.call('EXISTS',KEYS[1])==1 then return 0 end redis.call('SET',KEYS[1],ARGV[1]);redis.call('SET',KEYS[2],ARGV[2]);return 1",{keys:[index,PREFIX+'user:'+id],arguments:[id,JSON.stringify(account)]});if(!created)throw new InputError('这个账号已被使用',409);
  }else{const actual=(await deriveKey(password,account?.salt||'missing-account-salt',64)) as Buffer;if(!account||account.disabled||!account.password||!/^[a-f0-9]{128}$/i.test(account.password)||!timingSafeEqual(actual,Buffer.from(account.password,'hex')))throw new InputError('账号或密码不正确',401)}
- if(account.disabled)throw new InputError('Account disabled',403);await db.eval("local v=redis.call('GET',KEYS[1]);if not v then return 0 end local u=cjson.decode(v);u.lastLogin=tonumber(ARGV[1]);redis.call('SET',KEYS[1],cjson.encode(u));return 1",{keys:[PREFIX+'user:'+id],arguments:[String(Date.now())]});const next=randomBytes(32).toString('hex');await db.set(PREFIX+'session:'+hash(next),id!,{EX:TTL});await db.set(PREFIX+'session:'+hash(next)+':issued',String(Date.now()),{EX:TTL});if(sessionKey)await db.del(sessionKey);
+ if(account.disabled)throw new InputError('Account disabled',403);const next=randomBytes(32).toString('hex');if(!await establishSession(db,PREFIX,id!,account.password,PREFIX+'session:'+hash(next),sessionKey,TTL))throw new InputError('\u8d26\u53f7\u72b6\u6001\u5df2\u53d8\u5316\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55',401);
+ if(r.headers.get('x-resonance-auth')==='deferred-v1')return reply({user:{id,username,name:account.name},libraryPending:true},200,{'Set-Cookie':setCookie(next)});
  return await libraryReply((await read(id!)).data,id!,{user:{id,username,name:account.name}},{'Set-Cookie':setCookie(next)});
  }
  if(!uid||!user)throw new InputError('请先登录',401);
