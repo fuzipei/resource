@@ -1,0 +1,84 @@
+/* Six detailed painted landscapes, based on the supplied visual reference. Theme ids and saved preferences remain stable. */
+[data-skin=guofeng-ink]{--gf-day:#f3f4ef;--gf-night:#172521;--gf-ink:#28352e;--gf-paper:#d3ddd3;--gf-muted:#47564b;--gf-muted-night:#c0cec5;--gf-accent:#486054;--gf-accent-night:#b1c2ae;--gf-soft:#e8ece7;--gf-soft-night:#22372e;--gf-reading:#f3f4ef55;--gf-panel:#f3f4efdc;--gf-reading-night:#17252155;--gf-panel-night:#172521e8;--gf-line:#48605424;--gf-line-night:#b1c2ae22;--scene:url('/skins/guofeng-ink-painted-v3.webp');--scene-mobile:url('/skins/guofeng-ink-painted-v3.webp');--guofeng-verse:"听风见山，亦见你"}
+[data-skin=guofeng-zen]{--gf-day:#e9eff2;--gf-night:#111e30;--gf-ink:#2c4052;--gf-paper:#d5dde6;--gf-muted:#405566;--gf-muted-night:#c1cedb;--gf-accent:#4c6881;--gf-accent-night:#bdcdd8;--gf-soft:#dce6ec;--gf-soft-night:#1c2e42;--gf-reading:#e9eff255;--gf-panel:#e9eff2dc;--gf-reading-night:#111e3055;--gf-panel-night:#111e30e8;--gf-line:#4c688124;--gf-line-night:#bdcdd822;--scene:url('/skins/guofeng-zen-painted-v3.webp');--scene-mobile:url('/skins/guofeng-zen-painted-v3.webp');--guofeng-verse:"月下听歌，心自安然"}
+[data-skin=guofeng-jade]{--gf-day:#eef4ed;--gf-night:#142a25;--gf-ink:#2b4235;--gf-paper:#d4e0d3;--gf-muted:#3f5846;--gf-muted-night:#bfd4c4;--gf-accent:#4b7259;--gf-accent-night:#b4ceb7;--gf-soft:#e1ece0;--gf-soft-night:#223e31;--gf-reading:#eef4ed55;--gf-panel:#eef4eddc;--gf-reading-night:#142a2555;--gf-panel-night:#142a25e8;--gf-line:#4b725924;--gf-line-night:#b4ceb722;--scene:url('/skins/guofeng-jade-painted-v3.webp');--scene-mobile:url('/skins/guofeng-jade-painted-v3.webp');--guofeng-verse:"竹影摇风，心之所向"}
+[data-skin=guofeng-changan]{--gf-day:#f3e4dc;--gf-night:#2a222c;--gf-ink:#573c36;--gf-paper:#eddad0;--gf-muted:#674a41;--gf-muted-night:#e0ccc5;--gf-accent:#9d5745;--gf-accent-night:#dfb49a;--gf-soft:#ebd7cd;--gf-soft-night:#3b2d36;--gf-reading:#f3e4dc55;--gf-panel:#f3e4dcdc;--gf-reading-night:#2a222c55;--gf-panel-night:#2a222ce8;--gf-line:#9d574524;--gf-line-night:#dfb49a22;--scene:url('/skins/guofeng-changan-painted-v3.webp');--scene-mobile:url('/skins/guofeng-changan-painted-v3.webp');--guofeng-verse:"长安灯火，心之所许"}
+[data-skin=guofeng-porcelain]{--gf-day:#edf5f9;--gf-night:#152635;--gf-ink:#2f495b;--gf-paper:#d3e4eb;--gf-muted:#3f596c;--gf-muted-night:#bfd5e2;--gf-accent:#456e88;--gf-accent-night:#b8d4e5;--gf-soft:#ddebf3;--gf-soft-night:#233d50;--gf-reading:#edf5f955;--gf-panel:#edf5f9dc;--gf-reading-night:#15263555;--gf-panel-night:#152635e8;--gf-line:#456e8824;--gf-line-night:#b8d4e522;--scene:url('/skins/guofeng-porcelain-painted-v3.webp');--scene-mobile:url('/skins/guofeng-porcelain-painted-v3.webp');--guofeng-verse:"一曲清音，山河共白"}
+[data-skin=guofeng-obsidian]{--gf-day:#efeee8;--gf-night:#181a1b;--gf-ink:#403e34;--gf-paper:#e0d9c8;--gf-muted:#554f42;--gf-muted-night:#d1c5ad;--gf-accent:#816c42;--gf-accent-night:#cdb788;--gf-soft:#e5e1d6;--gf-soft-night:#282a28;--gf-reading:#efeee855;--gf-panel:#efeee8dc;--gf-reading-night:#181a1b55;--gf-panel-night:#181a1be8;--gf-line:#816c4224;--gf-line-night:#cdb78822;--scene:url('/skins/guofeng-obsidian-painted-v3.webp');--scene-mobile:url('/skins/guofeng-obsidian-painted-v3.webp');--guofeng-verse:"音乐无界，心有所响"}
+[data-skin=guofeng-ink][data-theme=dark]{--scene:url('/skins/guofeng-ink-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-ink-dark-painted-v3.webp')}
+[data-skin=guofeng-zen][data-theme=dark]{--scene:url('/skins/guofeng-zen-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-zen-dark-painted-v3.webp')}
+[data-skin=guofeng-jade][data-theme=dark]{--scene:url('/skins/guofeng-jade-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-jade-dark-painted-v3.webp')}
+[data-skin=guofeng-changan][data-theme=dark]{--scene:url('/skins/guofeng-changan-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-changan-dark-painted-v3.webp')}
+[data-skin=guofeng-porcelain][data-theme=dark]{--scene:url('/skins/guofeng-porcelain-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-porcelain-dark-painted-v3.webp')}
+[data-skin=guofeng-obsidian][data-theme=dark]{--scene:url('/skins/guofeng-obsidian-dark-painted-v3.webp');--scene-mobile:url('/skins/guofeng-obsidian-dark-painted-v3.webp')}
+
+[data-skin-category=guofeng][data-theme]{--gf-scene-veil:color-mix(in srgb,var(--gf-day) 24%,transparent);--gf-reading:color-mix(in srgb,var(--gf-day) 76%,transparent);--skin-ink:var(--gf-accent);--skin-tint:var(--gf-day);--skin-night:var(--gf-night);--skin-bright:var(--gf-accent-night);--background:var(--gf-day);--foreground:var(--gf-ink);--primary:var(--gf-accent);--secondary:var(--gf-muted);--soft:var(--gf-soft);--muted:var(--gf-soft);--border:var(--gf-line);--surface:var(--gf-panel);--glass:var(--gf-panel);--popover:var(--gf-day);--on-primary:#fff;--shadow:0 5px 20px #26392e0b}
+[data-skin-category=guofeng][data-theme=dark]{--gf-scene-veil:color-mix(in srgb,var(--gf-night) 22%,transparent);--gf-reading-night:color-mix(in srgb,var(--gf-night) 78%,transparent);--background:var(--gf-night);--foreground:var(--gf-paper);--primary:var(--gf-accent-night);--secondary:var(--gf-muted-night);--soft:var(--gf-soft-night);--muted:var(--gf-soft-night);--border:var(--gf-line-night);--surface:var(--gf-panel-night);--glass:var(--gf-panel-night);--popover:var(--gf-night);--on-primary:var(--gf-night);--shadow:0 5px 20px #00000018}
+[data-skin-category=guofeng] .music-app{background:var(--background);isolation:isolate}
+[data-skin-category=guofeng] .music-app:before{filter:none;transform:none;opacity:1;background-image:linear-gradient(90deg,var(--gf-scene-veil),transparent 88%),var(--scene);background-size:cover;background-position:right bottom;will-change:auto}
+[data-skin-category=guofeng] .music-app:after{content:var(--guofeng-verse);position:fixed;right:18px;top:32%;writing-mode:vertical-rl;font-family:'STKaiti','KaiTi','Songti SC',serif;font-size:12px;letter-spacing:.4em;line-height:1.7;color:var(--primary);opacity:.6;pointer-events:none;z-index:-1;padding-bottom:25px;background:url('/skins/guofeng-seal-v2.svg') center bottom/12px 17px no-repeat}
+[data-skin-category=guofeng] :is(.music-brand b,.music-topbar h1,.settings-heading h2,.playlist-hero h2){font-family:'Songti SC','STSong','SimSun',serif;font-weight:600;letter-spacing:.065em}
+[data-skin-category=guofeng] .music-brand>span{background:transparent;color:var(--foreground);border:1px solid var(--border);border-radius:50%;box-shadow:none}
+[data-skin-category=guofeng] .music-brand b{font-size:21px}
+[data-skin-category=guofeng] .music-sidebar{background:color-mix(in srgb,var(--background) 68%,transparent);backdrop-filter:none;border:0;border-right:1px solid var(--border);border-radius:0;box-shadow:none}
+[data-skin-category=guofeng] .music-sidebar nav button{border-radius:6px}
+[data-skin-category=guofeng] .music-sidebar nav button.active{background:linear-gradient(90deg,var(--soft),transparent);color:var(--foreground);box-shadow:none;font-weight:500}
+[data-skin-category=guofeng] .music-sidebar nav button.active .nav-dot{background:var(--primary)}
+[data-skin-category=guofeng] .settings-entry{border:0;background:transparent;box-shadow:none}
+[data-skin-category=guofeng] .floating-player{background:var(--glass);border:1px solid var(--border);border-radius:10px;box-shadow:none;backdrop-filter:blur(8px)}
+[data-skin-category=guofeng] .immersive-player .floating-player{background:var(--glass);border:1px solid var(--border);box-shadow:none;backdrop-filter:none}
+[data-skin-category=guofeng] .single-song-list{background:linear-gradient(180deg,transparent,var(--gf-reading) 50px,var(--gf-reading) calc(100% - 50px),transparent);border-radius:8px;backdrop-filter:none}
+[data-skin-category=guofeng] .music-row{border-color:var(--border);border-radius:0}
+[data-skin-category=guofeng] .music-row .row-time{color:var(--foreground)}
+[data-skin-category=guofeng] .music-row:hover{background:var(--surface)}
+[data-skin-category=guofeng] .music-row .add-to-playlist{background:transparent;box-shadow:none}
+[data-skin-category=guofeng] .playlist-table-wrap{background:var(--surface);border-radius:8px}
+[data-skin-category=guofeng] .playlist-table th{background:var(--soft);color:var(--secondary)}
+[data-skin-category=guofeng] .playlist-table tbody tr:nth-child(even){background:transparent}
+[data-skin-category=guofeng] .playlist-table tbody tr:hover,[data-skin-category=guofeng] .playlist-table tbody tr.is-current{background:var(--soft)}
+[data-skin-category=guofeng] :is(.global-search,.unified-search,.home-shortcuts>button,.home-hot,.home-moods,.search-panel,.import-panel){background:var(--surface);border-color:var(--border);box-shadow:none;backdrop-filter:none}
+[data-skin-category=guofeng] :is(.home-hot,.home-moods,.home-shortcuts>button,.search-panel,.import-panel){border-radius:8px}
+[data-skin-category=guofeng] .global-search{border-radius:24px}
+[data-skin-category=guofeng] :is(.icon-btn,.quality-dropdown select,.player-speed select){box-shadow:none}
+[data-skin-category=guofeng] .round-play{background:var(--foreground);color:var(--background);box-shadow:none}
+[data-skin-category=guofeng] .music-avatar{background:var(--soft);color:var(--primary);box-shadow:none}
+[data-skin-category=guofeng] .music-topbar .music-avatar.login-entry{background:var(--primary);color:var(--on-primary);box-shadow:none;border:1px solid var(--border)}
+[data-skin-category=guofeng] .lyrics-panel{background:none}
+[data-skin-category=guofeng] .settings-block{background:var(--surface);backdrop-filter:none;border:1px solid var(--border);border-radius:10px;box-shadow:none}
+.skin-categories{flex-wrap:wrap}
+.guofeng-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.guofeng-grid .skin-card{padding:0 0 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:none}
+.guofeng-grid .skin-card[aria-pressed=true]{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.guofeng-grid .skin-preview-pair{display:block}
+.guofeng-grid .skin-preview.scene-preview{height:auto;aspect-ratio:16/9;background-size:cover;background-position:right bottom;border-radius:0}
+.guofeng-grid .scene-preview.dark{display:none}
+[data-theme=dark] .guofeng-grid .scene-preview.light{display:none}
+[data-theme=dark] .guofeng-grid .scene-preview.dark{display:flex}
+.guofeng-grid .skin-preview-nav{width:23%;background:transparent;border-right:1px solid #8882;backdrop-filter:none;padding:18px 10px}
+.guofeng-grid .skin-preview-nav i{height:2px;opacity:.23}
+.guofeng-grid .skin-preview-nav .chosen{height:10px;opacity:.18}
+.guofeng-grid .skin-preview-content{padding:18px 16px;background:transparent}
+.guofeng-grid .preview-row{margin-top:16px}
+.guofeng-grid .preview-row em{height:2px;opacity:.22}
+.guofeng-grid .preview-player{margin-top:18px;background:#ffffff60;font-size:7px}
+.guofeng-grid .scene-preview.dark .preview-player{background:#ffffff10}
+.guofeng-grid .preview-night,.guofeng-grid .skin-swatches{display:none}
+.guofeng-grid .skin-card-title{padding:17px 14px 5px;font-family:'Songti SC','STSong','SimSun',serif;font-size:17px;letter-spacing:.1em}
+.guofeng-grid .skin-description{padding:0 14px;font-size:12px}
+@media(max-width:767px){[data-skin-category=guofeng] .music-app:before{background-image:linear-gradient(90deg,color-mix(in srgb,var(--background) 75%,transparent),color-mix(in srgb,var(--background) 25%,transparent)),var(--scene-mobile);background-size:cover;background-position:var(--gf-mobile-position,83% bottom);opacity:1}[data-skin-category=guofeng] .music-app:after{display:none}[data-skin-category=guofeng] .music-sidebar{background:var(--popover)}[data-skin-category=guofeng] .floating-player{backdrop-filter:none}.guofeng-grid{grid-template-columns:1fr;gap:18px}}
+@media(prefers-reduced-transparency:reduce){[data-skin-category=guofeng] .floating-player,[data-skin-category=guofeng] .settings-block,[data-skin-category=guofeng] .playlist-table-wrap{background:var(--popover);backdrop-filter:none}}
+
+[data-skin-category=guofeng][data-theme=dark] .single-song-list{background:linear-gradient(180deg,transparent,var(--gf-reading-night) 50px,var(--gf-reading-night) calc(100% - 50px),transparent)}
+
+/* Each portrait viewport focuses on the main painted object while sharing the cached artwork. */
+[data-skin=guofeng-ink]{--gf-mobile-position:70% bottom}
+[data-skin=guofeng-zen]{--gf-mobile-position:88% bottom}
+[data-skin=guofeng-jade]{--gf-mobile-position:84% bottom}
+[data-skin=guofeng-changan]{--gf-mobile-position:88% bottom}
+[data-skin=guofeng-porcelain]{--gf-mobile-position:86% bottom}
+[data-skin=guofeng-obsidian]{--gf-mobile-position:78% bottom}
+[data-skin-category=guofeng] .single-song-list{background:var(--gf-reading)}
+[data-skin-category=guofeng][data-theme=dark] .single-song-list{background:var(--gf-reading-night)}
+[data-skin-category=guofeng] .music-topbar{background:linear-gradient(90deg,color-mix(in srgb,var(--background) 65%,transparent),transparent 75%);border-radius:8px}
+.guofeng-grid .scene-preview.light .skin-preview-content,.guofeng-grid .scene-preview.light .skin-preview-nav{background:#f3f5f045}
+.guofeng-grid .scene-preview.dark .skin-preview-content,.guofeng-grid .scene-preview.dark .skin-preview-nav{background:#111e3045}
