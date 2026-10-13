@@ -1,5 +1,5 @@
 const ids=new Set(['guofeng-ink','guofeng-zen','guofeng-jade','guofeng-changan','guofeng-porcelain','guofeng-obsidian']);
-export function guofengScene(id:string,theme:string){return `/skins/${id}${theme==='dark'?'-dark':''}-painted-v3.webp`}
+export function guofengScene(id:string,theme:string){return `/skins/${id}${theme==='dark'?'-dark':''}-clear-v4.avif`}
 const warmed=new Set<string>();
 export function warmGuofengTheme(id:string){
  if(!ids.has(id)||typeof window==='undefined')return;
