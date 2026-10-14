@@ -2,6 +2,7 @@ import {PwaProvider} from './pwa';
 ﻿import type {Metadata} from 'next';
 import './globals.css';
 import './guofeng-painted.css';
+import './apple-interface.css';
 import './guofeng-home.css';
 import './guofeng-player.css';
 import './bit.css';

@@ -1,148 +1,26 @@
-/* Guofeng home: preserve the music IA and artwork; create continuous scenery with feathered reading areas.
-   Native CSS on the existing components. Variance 5, motion 2, density 4.
-   Shell changes only apply while the home is mounted, never in the immersive player. */
-.home-daily-cover,.home-card-category{display:none}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard){--gf-sidebar-width:clamp(218px,11vw,280px);--gf-home-offset:calc(var(--gf-sidebar-width) + 18px);--gf-home-gutter:clamp(28px,2.5vw,64px);--gf-home-veil:color-mix(in srgb,var(--background) 82%,transparent);--gf-home-soft:color-mix(in srgb,var(--background) 72%,transparent);--gf-home-title:clamp(15px,.76vw,19px);--gf-home-meta:clamp(12px,.59vw,15px)}
-[data-skin-category=guofeng] .music-app.sidebar-collapsed:has(.home-dashboard){--gf-home-offset:0px}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard):not(.immersive-player) .music-main{margin-left:var(--gf-home-offset);max-width:none;padding:clamp(24px,1.8vw,42px) var(--gf-home-gutter) 144px}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard):not(.immersive-player) .floating-player{left:calc(var(--gf-home-offset) + var(--gf-home-gutter));right:var(--gf-home-gutter);width:auto;max-width:none;background:color-mix(in srgb,var(--background) 78%,transparent);border-radius:8px;backdrop-filter:none;box-shadow:none}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-topbar{margin-bottom:clamp(24px,2vw,44px);padding:0 0 18px;background:none;border:0;border-bottom:1px solid var(--border);border-radius:0;min-height:66px;gap:18px}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-topbar h1{font-size:clamp(24px,1.15vw,30px)}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-topbar p{margin-top:5px}
-
-[data-skin-category=guofeng] .home-dashboard{display:grid;grid-template-columns:minmax(0,1fr) clamp(252px,16vw,360px);gap:clamp(30px,2.3vw,58px);padding:0;background:none;color:var(--foreground);border:0;border-radius:0;box-shadow:none;align-items:start}
-[data-skin-category=guofeng] .home-welcome{display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,18vw,390px);gap:32px;align-items:center;min-height:0;padding:0 0 26px;border-radius:0;border-bottom:0;background:none;color:var(--foreground);overflow:visible}
-[data-skin-category=guofeng] .home-hero-image,[data-skin-category=guofeng] .home-welcome:after{display:none}
-[data-skin-category=guofeng] .home-welcome-copy{position:relative;isolation:isolate;max-width:none;padding:0}
-[data-skin-category=guofeng] .home-welcome-copy>p{font-size:var(--gf-home-meta);letter-spacing:.06em;color:var(--secondary);opacity:1;margin:0 0 12px}
-[data-skin-category=guofeng] .home-welcome h2{font-family:'Songti SC','STSong','SimSun',serif;font-size:clamp(28px,1.8vw,44px);font-weight:500;letter-spacing:.045em;line-height:1.5;margin:0 0 10px}
-[data-skin-category=guofeng] .home-welcome-copy>span{font-size:13px;color:var(--secondary)}
-[data-skin-category=guofeng] .home-hero-actions{margin-top:20px;gap:10px;flex-wrap:wrap}
-[data-skin-category=guofeng] .home-hero-actions button{padding:10px 19px;min-height:44px;font-size:clamp(14px,.63vw,16px);white-space:nowrap;border:1px solid var(--border);border-radius:7px;background:var(--soft);color:var(--foreground)}
-[data-skin-category=guofeng] .home-hero-actions .home-primary-action{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-[data-skin-category=guofeng] .home-daily-card{position:static;display:flex;width:100%;min-width:0;padding:18px 0;gap:18px;border:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0;background:linear-gradient(90deg,transparent,var(--gf-home-soft),transparent);backdrop-filter:none;color:var(--foreground)!important}
-[data-skin-category=guofeng] .home-disc{position:relative;overflow:hidden;width:clamp(72px,4.1vw,104px);height:clamp(72px,4.1vw,104px);border-radius:5px;background:var(--background);color:var(--primary)}
-[data-skin-category=guofeng] .home-daily-cover{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-[data-skin-category=guofeng] .home-daily-card b{font-size:var(--gf-home-title);font-weight:500}
-[data-skin-category=guofeng] .home-daily-card small{font-size:var(--gf-home-meta);line-height:1.65;color:var(--secondary);opacity:1;-webkit-line-clamp:2}
-
-[data-skin-category=guofeng] .home-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 34px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(90deg,var(--gf-home-soft),transparent)}
-[data-skin-category=guofeng] .home-shortcuts>button{gap:10px;padding:8px 12px;border:0;border-right:1px solid var(--border);border-radius:0;background:none;box-shadow:none;text-align:left}
-[data-skin-category=guofeng] .home-shortcuts>button:first-child{padding-left:0}
-[data-skin-category=guofeng] .home-shortcuts>button:last-child{border-right:0}
-[data-skin-category=guofeng] .home-shortcut-icon{width:clamp(34px,1.7vw,44px);height:clamp(34px,1.7vw,44px);border-radius:0;background:none;color:var(--primary)}
-[data-skin-category=guofeng] .home-shortcut-icon svg{width:20px;height:20px}
-[data-skin-category=guofeng] .home-shortcuts b{font-size:var(--gf-home-title);font-weight:500}
-[data-skin-category=guofeng] .home-shortcuts small{font-size:var(--gf-home-meta);margin-top:3px}
-[data-skin-category=guofeng] .home-shortcuts button>span:last-child{min-width:0}
-
-[data-skin-category=guofeng] .home-section-heading{gap:12px;margin-bottom:17px;flex-wrap:wrap}
-[data-skin-category=guofeng] .home-section-heading h2{font-family:'Songti SC','STSong','SimSun',serif;font-size:clamp(22px,1.02vw,26px);font-weight:500;letter-spacing:.04em}
-[data-skin-category=guofeng] .home-tabs{gap:3px}
-[data-skin-category=guofeng] .home-tabs button{padding:6px 9px;font-size:12px;border-radius:5px;color:var(--secondary)}
-[data-skin-category=guofeng] .home-tabs button[aria-pressed=true]{background:var(--soft);color:var(--foreground)}
-[data-skin-category=guofeng] .home-section-heading .home-more{font-size:12px;min-height:32px}
-[data-skin-category=guofeng] .home-playlist-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px clamp(18px,1.6vw,40px)}
-[data-skin-category=guofeng] .home-playlist-card{display:grid;grid-template-columns:clamp(90px,4.7vw,120px) minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:clamp(14px,1vw,24px);align-content:center;min-height:118px;padding:10px 0;text-align:left;border-radius:6px}
-[data-skin-category=guofeng] .home-playlist-art{grid-column:1;grid-row:1/4;align-self:center;width:clamp(90px,4.7vw,120px);height:clamp(90px,4.7vw,120px);aspect-ratio:1;border-radius:5px}
-[data-skin-category=guofeng] .home-card-tag{display:none}
-[data-skin-category=guofeng] .home-card-category{display:block;grid-column:2;color:var(--primary);font-size:var(--gf-home-meta);line-height:1.6;margin-bottom:3px}
-[data-skin-category=guofeng] .home-playlist-card>b{grid-column:2;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;line-height:1.6;max-height:3.2em;margin:0;font-size:var(--gf-home-title);font-weight:500}
-[data-skin-category=guofeng] .home-playlist-card>small{grid-column:2;font-size:var(--gf-home-meta);line-height:1.7;margin-top:4px;color:var(--secondary)}
-[data-skin-category=guofeng] .home-card-play{width:24px;height:24px;bottom:6px;right:6px;background:var(--popover);color:var(--foreground);border:1px solid var(--border)}
-[data-skin-category=guofeng] .home-card-play svg{width:13px;height:13px}
-[data-skin-category=guofeng] .home-recommendations{margin-bottom:28px}
-[data-skin-category=guofeng] .home-new-songs{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 18px}
-[data-skin-category=guofeng] .home-new-songs>button{display:grid;grid-template-columns:clamp(48px,2.7vw,68px) minmax(0,1fr);column-gap:14px;min-height:64px;align-content:center;border-radius:6px}
-[data-skin-category=guofeng] .home-new-songs :is(.song-art,img){grid-column:1;grid-row:1/3;width:clamp(48px,2.7vw,68px);height:clamp(48px,2.7vw,68px);border-radius:4px}
-[data-skin-category=guofeng] .home-new-songs b{grid-column:2;font-size:var(--gf-home-title);margin:0;align-self:end}
-[data-skin-category=guofeng] .home-new-songs small{grid-column:2;font-size:var(--gf-home-meta);margin-top:3px;align-self:start}
-[data-skin-category=guofeng] .home-attribution{font-size:11px;line-height:1.7;margin-top:25px;padding-top:16px;border-top:1px solid var(--border)}
-
-[data-skin-category=guofeng] .home-right{display:flex;flex-direction:column;gap:27px;padding-left:24px;border-left:1px solid var(--border)}
-[data-skin-category=guofeng] .home-note{display:none}
-[data-skin-category=guofeng] .home-dashboard :is(.home-hot,.home-moods){padding:0;background:none;border:0;border-radius:0;box-shadow:none}
-[data-skin-category=guofeng] .home-right .home-section-heading h2{font-size:19px}
-[data-skin-category=guofeng] .home-hot-song{gap:10px;min-height:clamp(68px,3.4vw,88px);padding:10px 0;border-radius:6px}
-[data-skin-category=guofeng] .home-hot-song :is(img,.song-art){width:clamp(42px,2.3vw,56px);height:clamp(42px,2.3vw,56px);border-radius:4px}
-[data-skin-category=guofeng] .home-hot-song>span:first-child{width:13px}
-[data-skin-category=guofeng] .home-hot-song>svg{color:var(--primary)}
-[data-skin-category=guofeng] .home-moods button{min-height:65px;padding:12px 10px;gap:9px;background:var(--soft);color:var(--foreground);border:1px solid var(--border);border-radius:7px}
-[data-skin-category=guofeng] .home-moods button>svg{width:20px;height:20px;color:var(--primary)}
-[data-skin-category=guofeng] .home-moods small{opacity:1;color:var(--secondary);letter-spacing:.04em}
-[data-skin-category=guofeng] .home-dashboard :is(.home-playlist-card,.home-new-songs>button,.home-shortcuts>button):hover:not(:disabled){background:var(--soft);filter:none}
-
-@media(max-width:1500px){
- [data-skin-category=guofeng] .home-dashboard{grid-template-columns:minmax(0,1fr);gap:26px}
- [data-skin-category=guofeng] .home-right{display:grid;grid-template-columns:1.2fr 1fr;gap:30px;padding:24px 0 0;border-left:0;border-top:1px solid var(--border)}
- [data-skin-category=guofeng] .home-hot-song{min-height:55px;padding:7px 0}
+/* A local reading wash keeps the native painting crisp outside the content.
+   Layout and controls live in apple-interface.css; these rules only adapt the scene. */
+[data-skin-category=guofeng] .music-app {
+ --gf-home-veil:color-mix(in srgb,var(--background) 88%,transparent);
+ --gf-home-soft:color-mix(in srgb,var(--background) 78%,transparent);
 }
-@media(max-width:1050px){
- [data-skin-category=guofeng] .music-app:has(.home-dashboard){--gf-sidebar-width:194px;--gf-home-gutter:24px}
- [data-skin-category=guofeng] .home-dashboard{padding:0}
- [data-skin-category=guofeng] .home-welcome{grid-template-columns:minmax(0,1fr) 220px;gap:16px}
- [data-skin-category=guofeng] .home-playlist-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px}
- [data-skin-category=guofeng] .home-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:12px}
- [data-skin-category=guofeng] .home-shortcuts>button:nth-child(odd){padding-left:0}
- [data-skin-category=guofeng] .home-shortcuts>button:nth-child(even){border-right:0}
- [data-skin-category=guofeng] .home-new-songs{grid-template-columns:repeat(2,minmax(0,1fr))}
+[data-skin-category=guofeng][data-theme=dark] .music-app {
+ --gf-home-veil:color-mix(in srgb,var(--background) 84%,transparent);
+ --gf-home-soft:color-mix(in srgb,var(--background) 76%,transparent);
 }
-@media(min-width:768px) and (max-width:900px){
- [data-skin-category=guofeng] .home-welcome{grid-template-columns:minmax(0,1fr) 190px;gap:14px}
- [data-skin-category=guofeng] .home-welcome h2{font-size:24px}
- [data-skin-category=guofeng] .home-daily-card{padding:12px;gap:10px}
- [data-skin-category=guofeng] .home-disc{width:48px;height:48px}
+[data-skin-category=guofeng] .home-primary>section,
+[data-skin-category=guofeng] .home-right>section {position:relative;isolation:isolate}
+[data-skin-category=guofeng] :is(.home-recommendations,.home-new-releases,.home-hot,.home-moods)::before {
+ content:'';position:absolute;inset:-24px calc(-1 * min(var(--ui-gutter),24px));z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,var(--gf-home-veil),var(--gf-home-soft));
+ mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent),linear-gradient(180deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);
+ mask-composite:intersect;
 }
-@media(max-width:767px){
- [data-skin-category=guofeng] .music-app:has(.home-dashboard){--gf-sidebar-width:218px;--gf-home-offset:0px;--gf-home-gutter:22px;--gf-home-title:15px;--gf-home-meta:12px}
- [data-skin-category=guofeng] .music-app:has(.home-dashboard):not(.immersive-player) .music-main{padding-top:18px;padding-bottom:138px}
- [data-skin-category=guofeng] .music-app:has(.home-dashboard):not(.immersive-player) .floating-player{left:8px;right:8px;width:auto;max-width:none}
- [data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-topbar{gap:9px;padding:0 0 16px;margin-bottom:22px;border-radius:0}
- [data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-topbar h1{font-size:20px;letter-spacing:0}
- [data-skin-category=guofeng] .home-dashboard{padding:0;border-radius:0}
- [data-skin-category=guofeng] .home-welcome{grid-template-columns:1fr;gap:16px;padding-bottom:18px}
- [data-skin-category=guofeng] .home-welcome-copy>p{font-size:11px;margin-bottom:6px}
- [data-skin-category=guofeng] .home-welcome h2{font-size:24px;line-height:1.4}
- [data-skin-category=guofeng] .home-daily-card{width:100%;padding:10px 12px}
- [data-skin-category=guofeng] .home-daily-card small{-webkit-line-clamp:1}
- [data-skin-category=guofeng] .home-disc{width:48px;height:48px}
- [data-skin-category=guofeng] .home-hero-actions{margin-top:14px}
- [data-skin-category=guofeng] .home-hero-actions button{flex:1;padding:10px 12px;font-size:12px}
- [data-skin-category=guofeng] .home-section-heading{gap:8px}
- [data-skin-category=guofeng] .home-tabs{order:3;width:100%;flex-wrap:wrap}
- [data-skin-category=guofeng] .home-tabs button{flex:1;padding:7px 6px}
- [data-skin-category=guofeng] .home-playlist-grid{grid-template-columns:1fr;gap:8px}
- [data-skin-category=guofeng] .home-playlist-card{grid-template-columns:80px minmax(0,1fr);column-gap:14px;min-height:98px}
- [data-skin-category=guofeng] .home-playlist-art{width:80px;height:80px}
- [data-skin-category=guofeng] .home-playlist-card>small{font-size:11px}
- [data-skin-category=guofeng] .home-right{grid-template-columns:1fr;gap:26px}
- [data-skin-category=guofeng] .home-shortcuts{padding:12px 0;row-gap:8px;margin-bottom:22px}
- [data-skin-category=guofeng] .home-shortcuts>button{padding:5px 7px;gap:8px}
- [data-skin-category=guofeng] .home-shortcuts b{font-size:12px}
- [data-skin-category=guofeng] .home-shortcuts small{font-size:10px}
+[data-skin-category=guofeng] .home-welcome-copy {position:relative;isolation:isolate}
+[data-skin-category=guofeng] .home-welcome-copy::before {
+ content:'';position:absolute;inset:-36px calc(-1 * min(var(--ui-gutter),24px));z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse at 30% 48%,var(--gf-home-veil),transparent 76%);
 }
-@media(max-width:380px){
- [data-skin-category=guofeng] .music-app:has(.home-dashboard){--gf-home-gutter:16px}
- [data-skin-category=guofeng] .home-dashboard{padding:0}
- [data-skin-category=guofeng] .home-welcome h2{font-size:23px}
- [data-skin-category=guofeng] .home-new-songs{grid-template-columns:1fr}
- [data-skin-category=guofeng] .home-shortcut-icon{width:28px;height:30px}
- [data-skin-category=guofeng] .home-shortcuts>button{gap:6px}
+@media(prefers-reduced-transparency:reduce){
+ [data-skin-category=guofeng][data-theme] .music-app{--gf-home-veil:var(--background);--gf-home-soft:var(--background)}
 }
-@media(prefers-reduced-transparency:reduce){[data-skin-category=guofeng] .music-app:has(.home-dashboard){--gf-home-veil:var(--background);--gf-home-soft:var(--background)}}
-
-/* The feathered mask applies to the wash only, never to text or image detail. */
-[data-skin-category=guofeng][data-theme=dark] .music-app:has(.home-dashboard){--gf-home-veil:color-mix(in srgb,var(--background) 73%,transparent);--gf-home-soft:color-mix(in srgb,var(--background) 65%,transparent)}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-sidebar{width:var(--gf-sidebar-width);background:linear-gradient(90deg,color-mix(in srgb,var(--background) 63%,transparent),color-mix(in srgb,var(--background) 24%,transparent))}
-[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-sidebar nav button{font-size:clamp(14px,.69vw,17px);min-height:clamp(47px,2.4vw,60px)}
-[data-skin-category=guofeng] .home-primary>section,[data-skin-category=guofeng] .home-right>section{position:relative;isolation:isolate}
-[data-skin-category=guofeng] :is(.home-recommendations,.home-new-releases,.home-hot,.home-moods)::before{content:'';position:absolute;inset:-22px calc(-1 * min(var(--gf-home-gutter),24px));z-index:-1;pointer-events:none;background:linear-gradient(90deg,var(--gf-home-veil),var(--gf-home-soft));mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent),linear-gradient(180deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-composite:intersect}
-[data-skin-category=guofeng] .home-welcome-copy::before{content:'';position:absolute;inset:-32px calc(-1 * min(var(--gf-home-gutter),32px));z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 30% 48%,var(--gf-home-veil),transparent 74%)}
-[data-skin-category=guofeng] .home-hot-song b{font-size:var(--gf-home-title)}
-[data-skin-category=guofeng] .home-hot-song small{font-size:var(--gf-home-meta)}
-[data-skin-category=guofeng] .home-daily-card,[data-skin-category=guofeng] .home-shortcuts{background:linear-gradient(90deg,transparent,var(--gf-home-veil) 12%,var(--gf-home-veil) 88%,transparent)}
-[data-skin-category=guofeng] .home-card-category{color:var(--foreground)}
-[data-skin-category=guofeng] .home-moods button{font-size:var(--gf-home-title);min-height:76px;background:var(--gf-home-soft);border:0;border-radius:4px}
-@media(max-width:767px){[data-skin-category=guofeng] .music-app:has(.home-dashboard) .music-sidebar{background:var(--popover)}[data-skin-category=guofeng] .home-welcome h2{font-size:27px}[data-skin-category=guofeng] .home-shortcuts b{font-size:14px}[data-skin-category=guofeng] .home-playlist-card{grid-template-columns:88px minmax(0,1fr);min-height:108px;column-gap:16px}[data-skin-category=guofeng] .home-playlist-art{width:88px;height:88px}}
-@media(max-width:380px){[data-skin-category=guofeng] .home-welcome h2{font-size:25px}}
-@media(prefers-reduced-transparency:reduce){[data-skin-category=guofeng][data-theme] .music-app:has(.home-dashboard){--gf-home-veil:var(--background);--gf-home-soft:var(--background)}}
