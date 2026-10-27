@@ -18,7 +18,7 @@ export function HomePage({feed,recent,favoriteCount,playlistCount,current,playin
  useEffect(()=>()=>request.current?.abort(),[]);
  const [recommendations,setRecommendations]=useState<Record<string,CuratedPlaylist>>({});
  useEffect(()=>{if(catalog)setRecommendations(nextRecommendations(catalog.groups))},[catalog,rotation]);
- const pick=(cat:string)=>recommendations[cat];
+ const pick=(cat:string)=>recommendations[cat]??catalog?.groups[cat]?.[0];
  async function open(p:CuratedPlaylist){request.current?.abort();const c=new AbortController();request.current=c;setOpening(p.id);setError('');try{const r=await fetchJsonWithTimeout<Mix&{error?:string}>('/api/curated?id='+p.id,{signal:c.signal},25000);const j=r.data;if(!r.ok||!j.songs?.length)throw Error(j.error||'歌单暂时无法读取');if(!c.signal.aborted)onOpen(j)}catch(e){if(!c.signal.aborted)setError((e as Error).message)}finally{if(!c.signal.aborted)setOpening('')}}
  const hot=feed?.mixes.find(m=>m.id==='3778678')?.songs||feed?.mixes[0]?.songs||[];
  const fresh=feed?.mixes.find(m=>m.id==='3779629')?.songs||[];
