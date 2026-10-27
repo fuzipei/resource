@@ -1,4 +1,5 @@
 import {catalogTracks} from '../api/music/catalog-tracks';
+import {recommendationPlaylist} from '../api/recommendation-data';
 ﻿import type {ExternalPlaylist,ExternalTrack} from './model';
 async function get(url:string,options:RequestInit={}){const r=await fetch(url,{...options,redirect:'manual',signal:AbortSignal.timeout(16000),headers:{'User-Agent':'Mozilla/5.0','Accept':'application/json,text/html',...options.headers}});if(r.status>=300&&r.status<400){await r.body?.cancel();throw Error('平台跳转到了其他页面，请确认歌单公开并复制完整链接，或使用文件导入')}if(!r.ok)throw Error('平台暂时无法读取此歌单，请检查是否公开，或使用 CSV / JSON 文件导入');const reader=r.body?.getReader();if(!reader)throw Error('平台没有返回内容');let text='',size=0;const decoder=new TextDecoder();try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>5000000)throw Error('歌单页面过大，请使用文件导入');text+=decoder.decode(value,{stream:true})}}finally{await reader.cancel()}return text}
 function jsonAt(html:string,marker:string){let start=html.indexOf(marker);if(start<0)return null;start=html.indexOf('{',start+marker.length);if(start<0)return null;let depth=0,quote=false,escape=false;for(let i=start;i<html.length;i++){const c=html[i];if(quote){if(escape)escape=false;else if(c==='\\')escape=true;else if(c==='"')quote=false}else if(c==='"')quote=true;else if(c==='{')depth++;else if(c==='}'&&--depth===0){try{return JSON.parse(html.slice(start,i+1))}catch{return null}}}return null}
@@ -11,12 +12,16 @@ export async function readExternal(input:string):Promise<ExternalPlaylist>{
  const host=u.hostname;let tracks:ExternalTrack[]=[],name='导入的歌单',source='',warning='';
  if(['music.163.com','y.music.163.com'].includes(host)){
  const id=u.searchParams.get('id')||u.hash.match(/[?&]id=(\d+)/)?.[1]||u.pathname.match(/playlist\/(\d+)/)?.[1];if(!id||!/^\d+$/.test(id))throw Error('请使用网易云 playlist?id=… 歌单链接');
- const j=JSON.parse(await get('https://music.163.com/api/v6/playlist/detail?id='+id+'&n=500&s=0'));const p=j.playlist||j.result;if(!p)throw Error('网易云歌单不可访问，请使用公开歌单或文件导入');name=p.name;source='网易云音乐';if(p.trackCount===0&&(p.trackIds||[]).length===0&&(p.tracks||[]).length===0)return {name:String(name).slice(0,60),source,tracks:[],totalCount:0};
+ const j=await recommendationPlaylist(id,500);const p=j.playlist;if(!p)throw Error('网易云歌单不可访问，请使用公开歌单或文件导入');name=p.name;source='网易云音乐';if(p.trackCount===0&&(p.trackIds||[]).length===0&&(p.tracks||[]).length===0)return {name:String(name).slice(0,60),source,tracks:[],totalCount:0};
  const ids=(p.trackIds||[]).map((x:any)=>String(x.id)).filter((id:string)=>/^\d{1,18}$/.test(id));
  const first=ids.slice(0,200);const supplied=new Map((p.tracks||[]).map((t:any)=>[String(t.id),t]));
  const initial=first.length?first.map((id:string)=>supplied.get(id)).filter(Boolean):p.tracks||[];
  tracks=initial.map((t:any)=>({catalogId:'wy_'+t.id,title:t.name,artist:(t.ar||t.artists||[]).map((a:any)=>a.name).join(' / '),album:(t.al||t.album)?.name,durationMs:t.dt||t.duration}));
- if(first.length&&initial.length<first.length)tracks=await readNeteaseTracks(first);
+ if(first.length&&initial.length<first.length){
+  const recovered=await readNeteaseTracks(first.filter((id:string)=>!supplied.has(id)));
+  const byId=new Map([...tracks,...recovered].map(t=>[t.catalogId,t]));
+  tracks=first.flatMap((id:string)=>byId.has('wy_'+id)?[byId.get('wy_'+id)!]:[]);
+ }
  const totalCount=Number(p.trackCount)||ids.length||tracks.length;
  if(ids.length>200)return {name:String(name).slice(0,60),source,tracks,remainingIds:ids.slice(200),totalCount};
  if(totalCount>tracks.length)warning=`平台实际返回 ${tracks.length} / ${totalCount} 首；部分歌曲可能不可访问，请核对。`;
