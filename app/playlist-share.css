@@ -10,6 +10,13 @@
 .playlist-share-actions>button{min-height:44px;padding:10px 16px;border-radius:24px}
 .shared-playlist>.playlist-search{width:min(100%,360px);margin-bottom:20px}
 .shared-playlist .playlist-art>.song-art{width:100%;height:100%;border-radius:inherit}
+/* The read-only table has four columns; the personal table reserves its last
+   column for actions. Set header widths here so fixed table layout stays aligned. */
+.shared-playlist .playlist-table th.playlist-number{width:48px;text-align:center}
+.shared-playlist .playlist-table th.playlist-artist-column{width:24%}
+.shared-playlist .playlist-table th.playlist-duration{width:80px;text-align:right}
+.shared-playlist .playlist-table td.playlist-duration{text-align:right}
+.shared-playlist .playlist-table .playlist-track>span{flex:1}
 .mix-detail .playlist-actions{margin-top:20px}
 .mix-detail .playlist-actions>.primary-btn{margin-top:0}
-@media(max-width:600px){.playlist-share-dialog{padding:22px}.shared-playlist .playlist-hero{gap:20px}}
+@media(max-width:600px){.playlist-share-dialog{padding:22px}.shared-playlist .playlist-hero{gap:20px}.shared-playlist .playlist-hero-info>p{grid-column:1/-1}.shared-playlist .playlist-table th.playlist-number{width:32px}.shared-playlist .playlist-table th.playlist-duration{width:56px}}
