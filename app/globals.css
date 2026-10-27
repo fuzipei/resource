@@ -156,6 +156,8 @@
 @media(min-width:1251px){.floating-player .player-seek{flex:1 1 360px;max-width:540px;margin-inline:auto}.floating-player{justify-content:space-between}}
 .fullscreen-button{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid var(--border);border-radius:20px;white-space:nowrap;color:var(--primary)}
 .immersive-player{position:fixed;inset:0;height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 20% 0%,#8caa7940,transparent 55%),radial-gradient(ellipse at 80% 70%,#86755b24,transparent 60%),var(--background)}
+.music-app.immersive-player .floating-player{left:18px;right:18px}
+@media(max-width:767px){.music-app.immersive-player .floating-player{left:8px;right:8px}}
 .immersive-player .music-sidebar,.immersive-player .nav-scrim,.immersive-player .menu-toggle{display:none}
 .immersive-player .music-main{margin:0;height:100dvh;padding:24px clamp(20px,5vw,100px) 180px;overflow:hidden}
 .immersive-player .music-topbar{margin-bottom:18px}
@@ -168,13 +170,6 @@
 .immersive-player .listening-art>p{max-height:3em;overflow:hidden}
 .immersive-player .listening-art .large-transport{display:none}
 .immersive-player .lyrics-panel{height:100%;min-height:0;border:0;max-height:none}
-.immersive-player .floating-player{left:50%;right:auto;transform:translateX(-50%);width:min(980px,calc(100% - 48px));height:122px;min-height:0;bottom:24px;padding:54px 24px 12px;justify-content:center;gap:22px;border:0;background:transparent;box-shadow:none;backdrop-filter:none;flex-wrap:nowrap}
-.immersive-player .floating-player .player-seek{position:absolute;top:10px;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:min(680px,100%);max-width:680px;margin:0}
-.immersive-player .floating-player .current-info,.immersive-player .floating-player .lyrics-button{display:none}
-.immersive-player .player-transport{gap:22px}
-.immersive-player .player-volume{display:flex}
-.immersive-player .round-play{width:54px;height:54px}
-.immersive-player .player-toast{bottom:155px}
 @media(max-width:767px){
  .fullscreen-button{padding:8px}.fullscreen-button span{display:none}
  .immersive-player .music-main{padding:18px 18px 160px}
@@ -187,11 +182,7 @@
  .immersive-player .listening-art>p{font-size:12px}
  .immersive-player .listening-quality{margin:5px 0 0;padding:4px 8px;justify-self:start}
  .immersive-player .lyrics-panel{margin:0;height:100%;min-height:0}
- .immersive-player .floating-player{width:calc(100% - 32px);bottom:calc(12px + env(safe-area-inset-bottom));gap:12px;padding-inline:0;height:122px}
- .immersive-player .player-volume,.immersive-player .quality-dropdown{display:none}
- .immersive-player .player-transport{gap:12px}
  .immersive-player .previous-track{display:inline-flex}
- .immersive-player .player-seek{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.immersive-player *{scroll-behavior:auto}}
 /* Keep a single focus ring on the search surface, rather than the input. */
@@ -202,7 +193,7 @@
 .unified-search .search-submit{border-radius:13px;min-height:42px;padding:10px 24px;background:var(--primary);color:var(--background);font-weight:600}
 .unified-search .search-clear{display:grid;place-items:center;flex-shrink:0;background:transparent;color:var(--secondary);padding:8px;width:34px;height:34px}
 .search-history{margin:22px 0 24px}.search-history-heading{display:flex;align-items:center;justify-content:space-between;color:var(--secondary);font-size:12px;margin-bottom:12px}.search-history-heading>span{display:flex;align-items:center;gap:7px}.search-history-heading>button{padding:5px 0}.history-chips{display:flex;flex-wrap:wrap;gap:9px}.history-chip{display:flex;align-items:center;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:24px}.history-chip>button:first-child{padding:8px 5px 8px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.history-chip>button:last-child{display:grid;place-items:center;flex-shrink:0;padding:9px;color:var(--secondary)}
-@media(min-width:1251px){.music-app:not(.immersive-player) .floating-player .player-seek{max-width:none;flex:1 1 420px;min-width:160px;margin-inline:clamp(8px,1.5vw,28px)}.music-app:not(.immersive-player) .floating-player .player-seek input{flex:1;width:100%;min-width:0}}
+@media(min-width:1251px){.music-app .floating-player .player-seek{max-width:none;flex:1 1 420px;min-width:160px;margin-inline:clamp(8px,1.5vw,28px)}.music-app .floating-player .player-seek input{flex:1;width:100%;min-width:0}}
 @media(max-width:767px){.unified-search{gap:9px;padding:8px 9px 8px 14px;border-radius:16px}.unified-search .search-submit{padding:9px 15px}.history-chips{gap:7px}}
 /* Album dimensions stay independent of the lyric scroll position. */
 .album-display{width:min(100%,max(130px,calc(100dvh - 470px)));aspect-ratio:1;margin-inline:auto;flex-shrink:0}
@@ -242,27 +233,6 @@
  .immersive-player .record-settings{grid-column:1/-1;margin-top:8px;gap:20px}
  .immersive-player .song-share{grid-column:2;justify-content:flex-start;margin-top:0}
  .record-settings{font-size:11px;gap:12px}
-}
-/* Fullscreen: progress above, transport centered, secondary controls at the sides. */
-.immersive-player .floating-player{width:min(920px,calc(100% - 48px));padding:52px 0 10px;display:flex;justify-content:center;gap:0}
-.immersive-player .floating-player .player-seek{width:min(760px,100%);max-width:760px;top:4px}
-.immersive-player .player-transport{justify-content:center;gap:24px}
-.immersive-player .player-transport>.icon-btn{width:44px;height:44px}
-.immersive-player .round-play{width:60px;height:60px}
-.immersive-player .playback-mode{position:absolute;left:0;bottom:18px}
-.immersive-player .floating-player .player-like{position:absolute;display:grid;place-items:center;left:52px;bottom:18px;width:44px;height:44px}
-.immersive-player .floating-player .player-queue{position:absolute;right:0;bottom:18px;width:44px;height:44px}
-.immersive-player .player-volume{position:absolute;right:60px;bottom:30px;width:100px}
-.immersive-player .player-volume input{width:70px}
-.immersive-player .quality-dropdown{position:absolute;right:180px;bottom:23px}
-@media(max-width:900px){.immersive-player .quality-dropdown{display:none}.immersive-player .player-volume{right:52px;width:80px}.immersive-player .player-volume input{width:50px}}
-@media(max-width:600px){
- .immersive-player .floating-player{width:calc(100% - 32px);padding-inline:0}
- .immersive-player .player-transport{gap:14px}
- .immersive-player .floating-player .player-like,.immersive-player .player-volume{display:none}
- .immersive-player .player-transport>.icon-btn{width:40px;height:44px}
- .immersive-player .round-play{width:54px;height:54px}
- .immersive-player .playback-mode,.immersive-player .floating-player .player-queue{bottom:15px}
 }
 [data-skin="forest"]{--skin-ink:#16604a;--skin-tint:#eaf3ec;--skin-night:#091c16;--skin-bright:#95d7b7}
 [data-skin="blue"]{--skin-ink:#426dea;--skin-tint:#edf2ff;--skin-night:#0c152c;--skin-bright:#85afff}
@@ -307,7 +277,6 @@
 [data-skin] .single-song-list{padding:8px 16px}
 [data-skin] .music-row{border-color:color-mix(in srgb,var(--primary) 13%,transparent)}
 [data-skin] .global-search,[data-skin] .unified-search{background:color-mix(in srgb,var(--background) 68%,transparent);backdrop-filter:blur(12px)}
-[data-skin] .immersive-player .floating-player{background:linear-gradient(transparent,color-mix(in srgb,var(--background) 72%,transparent));box-shadow:none;backdrop-filter:blur(8px)}
 [data-skin] .lyrics-panel{background:radial-gradient(ellipse,color-mix(in srgb,var(--background) 40%,transparent),transparent 75%)}
 .skin-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
 .skin-card{padding:0 0 12px;overflow:hidden;background:var(--surface);border-radius:18px}
@@ -375,15 +344,6 @@
 .site-announcement{display:flex;align-items:center;gap:18px;padding:13px 18px;margin-bottom:20px;border:1px solid var(--border);background:var(--surface);border-radius:12px;color:var(--foreground);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.site-announcement span{flex:1}.site-announcement button{font-size:22px;color:var(--secondary)}.sso-options{border-top:1px solid var(--border);margin-top:18px;padding-top:14px}.sso-options>div{display:flex;gap:8px;flex-wrap:wrap}.sso-options button{padding:9px 14px;border:1px solid var(--border);border-radius:10px}.sso-options label{font-size:12px}
 
 /* Fullscreen playback controls: hover at the bottom to reveal, or pin open. */
-.immersive-player .floating-player .player-pin{position:absolute;left:0;top:-6px;width:36px;height:36px;display:grid;place-items:center;color:var(--secondary);z-index:1}
-.immersive-player .floating-player .player-pin[aria-pressed=true]{color:var(--primary);background:var(--soft);border-radius:50%}
-.immersive-player .floating-player .player-seek{width:min(760px,calc(100% - 88px))}
-@media(hover:hover) and (pointer:fine){
- .immersive-player .floating-player{opacity:0;transition:opacity .2s ease}
- .immersive-player .floating-player::before{content:"";position:absolute;inset:-10px 0 calc(-24px - env(safe-area-inset-bottom));z-index:-1}
- .immersive-player .floating-player:hover,.immersive-player .floating-player.player-pinned,.immersive-player .floating-player:has(:focus-visible){opacity:1}
-}
-@media(prefers-reduced-motion:reduce){.immersive-player .floating-player{transition:none}}
 
 .persistent-library[hidden]{display:none!important}
 .music-topbar .music-avatar.login-entry{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:auto;min-width:112px;height:44px;padding:0 24px;border-radius:24px;background:var(--primary);color:var(--on-primary,#fff);font-size:14px;font-weight:600;flex-shrink:0;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 16%,transparent)}
@@ -395,10 +355,8 @@
 /* Playback rate stays reachable in compact and fullscreen controls. */
 .player-speed{flex:0 0 auto}
 .player-speed select{width:66px;min-height:36px;padding:6px 7px;border:1px solid var(--border);border-radius:18px;background:var(--popover);color:var(--foreground);font-size:12px;cursor:pointer;font-variant-numeric:tabular-nums}
-@media(min-width:1151px){.music-app:not(.immersive-player) .floating-player{gap:10px}.music-app:not(.immersive-player) .floating-player .player-seek{min-width:90px;margin-inline:4px;gap:7px}}
-.immersive-player .floating-player .player-speed{position:absolute;right:0;top:-8px;z-index:2}
-.immersive-player .floating-player .player-seek{width:min(700px,calc(100% - 168px));left:calc(50% - 18px)}
-@media(max-width:767px){.player-speed select{width:59px;padding:5px;min-height:36px;font-size:11px}.music-app:not(.immersive-player) .floating-player{column-gap:5px}.music-app:not(.immersive-player) .floating-player .current-info{min-width:0;gap:6px}}
+@media(min-width:1151px){.music-app .floating-player{gap:10px}.music-app .floating-player .player-seek{min-width:90px;margin-inline:4px;gap:7px}}
+@media(max-width:767px){.player-speed select{width:59px;padding:5px;min-height:36px;font-size:11px}.music-app .floating-player{column-gap:5px}.music-app .floating-player .current-info{min-width:0;gap:6px}}
 
 .playlist-table tbody .virtual-spacer{background:transparent!important;pointer-events:none}.playlist-table tbody tr:not(.virtual-spacer){height:58px}
 
@@ -444,6 +402,5 @@
 .audio-source-option{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;padding:7px 10px;border-radius:6px;font-size:12px;cursor:pointer;outline:none;white-space:nowrap}
 .audio-source-option[data-highlighted]{background:var(--soft);color:var(--primary)}
 .audio-source-option[data-selected]{color:var(--primary);font-weight:600}
-.immersive-player .floating-player:has(.quality-dropdown[data-open=true]){opacity:1}
 [data-skin-category=bit] .audio-source-trigger,[data-skin-category=bit] .audio-source-popup{border:1px solid var(--border);border-radius:3px;box-shadow:none}
 [data-skin-category=bit] .audio-source-option{border-radius:1px}

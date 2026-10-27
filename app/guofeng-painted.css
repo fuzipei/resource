@@ -26,7 +26,6 @@
 [data-skin-category=guofeng] .music-sidebar nav button.active .nav-dot{background:var(--primary)}
 [data-skin-category=guofeng] .settings-entry{border:0;background:transparent;box-shadow:none}
 [data-skin-category=guofeng] .floating-player{background:var(--glass);border:1px solid var(--border);border-radius:10px;box-shadow:none;backdrop-filter:blur(8px)}
-[data-skin-category=guofeng] .immersive-player .floating-player{background:var(--glass);border:1px solid var(--border);box-shadow:none;backdrop-filter:none}
 [data-skin-category=guofeng] .single-song-list{background:linear-gradient(180deg,transparent,var(--gf-reading) 50px,var(--gf-reading) calc(100% - 50px),transparent);border-radius:8px;backdrop-filter:none}
 [data-skin-category=guofeng] .music-row{border-color:var(--border);border-radius:0}
 [data-skin-category=guofeng] .music-row .row-time{color:var(--foreground)}

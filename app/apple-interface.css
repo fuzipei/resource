@@ -15,6 +15,7 @@
  body{font-family:var(--ui-font)}
  .music-app{--ui-offset:var(--ui-sidebar)}
  .music-app.sidebar-collapsed{--ui-offset:0px}
+ .music-app.immersive-player{--ui-offset:0px}
  .music-app:not(.immersive-player) .music-main{margin-left:var(--ui-offset);padding:28px var(--ui-gutter) 152px;max-width:none}
  .music-sidebar{left:0;top:0;bottom:0;width:var(--ui-sidebar);padding:32px 16px 24px;border:0;border-right:1px solid var(--ui-line);border-radius:0;background:var(--ui-panel);backdrop-filter:none;box-shadow:none}
  .music-brand{margin:0 12px}
@@ -39,7 +40,7 @@
  .page-history-controls button{width:30px;height:36px}
  .global-search{height:44px;width:clamp(200px,21vw,320px);border:1px solid var(--ui-line);background:var(--ui-panel);border-radius:var(--ui-pill);font-size:13px;color:var(--ui-muted);box-shadow:none;backdrop-filter:none}
  .music-topbar .music-avatar.login-entry{min-width:88px;padding:0 20px;height:44px;font-weight:500;box-shadow:none;border:0}
- .music-app:not(.immersive-player) .floating-player{left:calc(var(--ui-offset) + var(--ui-gutter));right:var(--ui-gutter);width:auto;max-width:none;border:1px solid var(--ui-line);background:var(--ui-panel);border-radius:var(--ui-radius);backdrop-filter:none;box-shadow:var(--ui-shadow)}
+ .music-app .floating-player{left:calc(var(--ui-offset) + var(--ui-gutter));right:var(--ui-gutter);width:auto;max-width:none;border:1px solid var(--ui-line);background:var(--ui-panel);border-radius:var(--ui-radius);backdrop-filter:none;box-shadow:var(--ui-shadow)}
  .floating-player .current-info b{font-weight:600}
  .floating-player .current-info small{color:var(--ui-muted)}
  .floating-player .round-play{background:var(--foreground);color:var(--background);box-shadow:none}
@@ -162,7 +163,7 @@
   .global-search{width:36px;height:40px;flex-shrink:0;padding:0;justify-content:center;border:0;background:none}
   .global-search span{display:none}
   .page-history-controls button{width:25px;height:34px}
-  .music-app:not(.immersive-player) .floating-player{left:8px;right:8px;border-radius:var(--ui-radius)}
+  .music-app .floating-player{left:8px;right:8px;border-radius:var(--ui-radius)}
   .home-welcome{grid-template-columns:1fr;gap:24px;padding:8px 0 24px}
   .home-welcome-copy>p{font-size:12px;margin-bottom:14px}
   .home-welcome h2{font-size:36px;letter-spacing:-.035em;line-height:1.2}
