@@ -1,7 +1,7 @@
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {sceneCategories,moodCategories,genreCategories,type CuratedFeed,type CuratedPlaylist} from './curated-types';
 const categories=[...new Set([...sceneCategories,...moodCategories,...genreCategories])];
-const STORAGE='resonance-curated-public-v3';
+const STORAGE='resonance-curated-public-v4';
 let cached:{until:number;data:CuratedFeed}|undefined;
 function validRows(rows:unknown):rows is CuratedPlaylist[]{return Array.isArray(rows)&&rows.length>0&&rows.every(p=>p&&typeof p.id==='string'&&/^\d{1,18}$/.test(p.id)&&typeof p.title==='string'&&typeof p.cover==='string')}
 function merge(current:CuratedFeed|undefined,next:CuratedFeed):CuratedFeed{
