@@ -7,13 +7,13 @@ export async function readRecommendationCache<T>(name:string):Promise<T|undefine
 export async function saveRecommendationCache(name:string,value:unknown){
  try{await edge()?.put(cacheKey(name),Response.json(value,{headers:{'Cache-Control':'public, max-age=86400'}}))}catch{/* Cache availability must not block recommendations. */}
 }
-export async function recommendationJson(paths:string[],valid:(data:any)=>boolean,signal?:AbortSignal):Promise<any>{
+export async function recommendationJson(paths:string[],valid:(data:any)=>boolean,signal?:AbortSignal,origin='https://music.163.com'):Promise<any>{
  for(const path of paths){
   if(signal?.aborted)throw signal.reason;
   const controller=new AbortController(),abort=()=>controller.abort();
   signal?.addEventListener('abort',abort,{once:true});const timer=setTimeout(abort,3500);
   try{
-   const response=await fetch('https://music.163.com'+path,{signal:controller.signal,redirect:'manual',headers:{Accept:'application/json',Referer:'https://music.163.com/'}});
+   const response=await fetch(origin+path,{signal:controller.signal,redirect:'manual',headers:{Accept:'application/json',Referer:'https://music.163.com/'}});
    if(!response.ok){await response.body?.cancel();continue}
    const data=await response.json();if(valid(data))return data;
   }catch{if(signal?.aborted)throw signal.reason}
@@ -24,11 +24,19 @@ export async function recommendationJson(paths:string[],valid:(data:any)=>boolea
 export async function recommendationPlaylist(id:string,limit:number,signal?:AbortSignal){
  if(!/^\d{1,18}$/.test(id))throw Error('歌单编号无效');
  const params=new URLSearchParams({id,n:String(limit),s:'0'});
- const data=await recommendationJson(['/api/v6/playlist/detail?'+params,'/api/v3/playlist/detail?'+params,'/api/playlist/detail?'+params],j=>{
+ const valid=(j:any)=>{
   const p=j.playlist||j.result;
   return j.code===200&&p&&((Array.isArray(p.tracks)&&p.tracks.length>0)||(Array.isArray(p.trackIds)&&p.trackIds.length>0)||p.trackCount===0);
- },signal);
+ };
+ // Modern endpoints expose full membership even when tracks contains only a ten-song preview.
+ // Try the official API hosts before the lossy legacy response (which can also report count=10).
+ let data:any;
+ for(const origin of ['https://music.163.com','https://interface.music.163.com','https://interface3.music.163.com']){
+  try{data=await recommendationJson(['/api/v6/playlist/detail?'+params,'/api/v3/playlist/detail?'+params],j=>valid(j)&&Array.isArray((j.playlist||j.result).trackIds),signal,origin);break}
+  catch{if(signal?.aborted)throw signal.reason}
+ }
+ if(!data)data=await recommendationJson(['/api/playlist/detail?'+params],valid,signal);
  const p=data.playlist||data.result;
  // Legacy responses use artists/album/duration. Keep one shape for charts, curated and imports.
- return {...data,playlist:{...p,tracks:(p.tracks||[]).map((t:any)=>({...t,ar:t.ar||t.artists||[],al:t.al||t.album||{},dt:t.dt||t.duration||0}))}};
+ return {...data,membershipVerified:Array.isArray(p.trackIds),playlist:{...p,tracks:(p.tracks||[]).map((t:any)=>({...t,ar:t.ar||t.artists||[],al:t.al||t.album||{},dt:t.dt||t.duration||0}))}};
 }

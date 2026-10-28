@@ -23,6 +23,7 @@ export async function readExternal(input:string):Promise<ExternalPlaylist>{
   tracks=first.flatMap((id:string)=>byId.has('wy_'+id)?[byId.get('wy_'+id)!]:[]);
  }
  const totalCount=Number(p.trackCount)||ids.length||tracks.length;
+ if(!j.membershipVerified)warning=`平台仅返回 ${tracks.length} 首预览，未能取得完整歌曲编号，无法确认歌单总数；请稍后重新读取，或使用文件导入。`;
  if(ids.length>200)return {name:String(name).slice(0,60),source,tracks,remainingIds:ids.slice(200),totalCount};
  if(totalCount>tracks.length)warning=`平台实际返回 ${tracks.length} / ${totalCount} 首；部分歌曲可能不可访问，请核对。`;
 
