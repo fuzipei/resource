@@ -1,12 +1,12 @@
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {sceneCategories,moodCategories,genreCategories,type CuratedFeed,type CuratedPlaylist} from './curated-types';
 const categories=[...new Set([...sceneCategories,...moodCategories,...genreCategories])];
-const STORAGE='resonance-curated-public-v2';
+const STORAGE='resonance-curated-public-v3';
 let cached:{until:number;data:CuratedFeed}|undefined;
 function validRows(rows:unknown):rows is CuratedPlaylist[]{return Array.isArray(rows)&&rows.length>0&&rows.every(p=>p&&typeof p.id==='string'&&/^\d{1,18}$/.test(p.id)&&typeof p.title==='string'&&typeof p.cover==='string')}
 function merge(current:CuratedFeed|undefined,next:CuratedFeed):CuratedFeed{
  const groups:CuratedFeed['groups']={};
- for(const category of categories){const rows=next.groups[category],previous=current?.groups[category];groups[category]=validRows(rows)?rows.slice(0,8):validRows(previous)?previous.slice(0,8):[]}
+ for(const category of categories){const rows=next.groups[category],previous=current?.groups[category];groups[category]=validRows(rows)?rows.slice(0,48):validRows(previous)?previous.slice(0,48):[]}
  const missing=categories.filter(category=>!groups[category].length);
  return {...next,groups,missing,stale:!!next.stale||missing.length>0};
 }
