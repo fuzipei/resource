@@ -5,7 +5,7 @@ const numeric=(value:unknown)=>/^\d{1,18}$/.test(String(value||''));
 const clean=(value:unknown,fallback:string)=>String(value||fallback).slice(0,200);
 const cover=(value:unknown)=>{try{const u=new URL(String(value||'').replace(/^http:/,'https:'));return u.protocol==='https:'&&!u.username&&!u.password&&!u.port?u.href:''}catch{return ''}};
 const cache=new Map<string,{until:number;value:SearchResult}>();
-async function data(url:string,signal:AbortSignal){const r=await fetch(url,{signal,headers:{Accept:'application/json'},redirect:'manual'});if(!r.ok)throw Error('Search source unavailable');const body=await r.text();if(body.length>1000000)throw Error('Search source response too large');return JSON.parse(body) as any}
+async function data(url:string,signal:AbortSignal){const r=await fetch(url,{signal,headers:{Accept:'application/json','User-Agent':'Mozilla/5.0'},redirect:'manual'});if(!r.ok)throw Error('Search source unavailable');const body=await r.text();if(body.length>1000000)throw Error('Search source response too large');return JSON.parse(body) as any}
 async function qq(q:string,page:number,signal:AbortSignal):Promise<SearchResult>{
  // QQ's primary catalog can fail from an edge location while its mobile host works.
  const j=await Promise.any(['c.y.qq.com','i.y.qq.com'].map(async host=>{
@@ -18,16 +18,16 @@ async function qq(q:string,page:number,signal:AbortSignal):Promise<SearchResult>
 }
 async function coco(q:string,page:number,signal:AbortSignal):Promise<SearchResult>{
  const j=await data('https://cocodownloader.markqq.com/api/search?'+new URLSearchParams({q,provider:'netease',limit:'20',offset:String((page-1)*20)}),signal);
- const songs=Array.isArray(j.items)?j.items:[];
+ if(!Array.isArray(j.items))throw Error('Coco search unavailable');const songs=j.items;
  return {items:songs.filter((s:any)=>numeric(s?.id)).map((s:any)=>({id:'wy_'+s.id,provider:'at38' as const,title:clean(s.title,'未命名歌曲'),artist:clean(s.artist,'未知艺人'),album:clean(s.album,'单曲'),cover:cover(s.cover),duration:clean(s.duration,'')})),hasMore:songs.length===20};
 }
 async function gd(q:string,page:number,signal:AbortSignal):Promise<SearchResult>{
  const j=await data('https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'search',source:'netease',name:q,count:'20',pages:String(page)}),signal);
- const songs=Array.isArray(j)?j:[];
+ if(!Array.isArray(j))throw Error('GD search unavailable');const songs=j;
  return {items:songs.filter((s:any)=>numeric(s?.id)).map((s:any)=>({id:'wy_'+s.id,provider:'at38' as const,title:clean(s.name,'未命名歌曲'),artist:clean(Array.isArray(s.artist)?s.artist.join(' / '):s.artist,'未知艺人'),album:clean(s.album,'单曲'),cover:'',duration:''})),hasMore:songs.length===20};
 }
 async function netease(q:string,page:number,signal:AbortSignal):Promise<SearchResult>{
- const j=await data('https://music.163.com/api/search/get/web?'+new URLSearchParams({s:q,type:'1',limit:'20',offset:String((page-1)*20)}),signal);
+ const j=await Promise.any(['music.163.com','interface.music.163.com'].map(async host=>{const value=await data('https://'+host+'/api/search/get/web?'+new URLSearchParams({s:q,type:'1',limit:'20',offset:String((page-1)*20)}),signal);if(value.code!==200||(!Array.isArray(value.result?.songs)&&value.result?.songCount!==0))throw Error('Netease search unavailable');return value}));
  const songs=Array.isArray(j.result?.songs)?j.result.songs:[];
  return {items:songs.filter((s:any)=>numeric(s?.id)).map((s:any)=>({id:'wy_'+s.id,provider:'at38' as const,title:clean(s.name,'未命名歌曲'),artist:clean((s.artists||s.ar||[]).map((a:any)=>a.name).join(' / '),'未知艺人'),album:clean(s.album?.name||s.al?.name,'单曲'),cover:cover(s.album?.picUrl||s.al?.picUrl),duration:s.duration?`${Math.floor(s.duration/60000)}:${String(Math.floor(s.duration/1000)%60).padStart(2,'0')}`:''})),hasMore:songs.length===20};
 }

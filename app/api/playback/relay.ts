@@ -11,9 +11,25 @@ function publicHttps(raw:string){
 /** Only the Vercel deployment uses the existing Cloudflare resolver by default. */
 export function playbackRelayOrigin(request:Request){
  if(request.headers.has(HOP))return '';
- const configured=process.env.PLAYBACK_RELAY_ORIGIN??(process.env.VERCEL==='1'?'https://gm.zzhye.com':'');
+ // This custom domain must also work when Vercel system variables are not exposed.
+ const vercel=process.env.VERCEL==='1'||new URL(request.url).hostname==='y.7758527.xyz';
+ const configured=process.env.PLAYBACK_RELAY_ORIGIN??(vercel?'https://gm.zzhye.com':'');
  if(!configured)return '';
  try{const origin=publicHttps(configured).origin;return origin===new URL(request.url).origin?'':origin}catch{return ''}
+}
+
+export async function relaySearch(q:string,page:number,origin:string,signal:AbortSignal){
+ const response=await fetch(origin+'/api/music?'+new URLSearchParams({provider:'at38',q,page:String(page)}),{signal:AbortSignal.any([signal,AbortSignal.timeout(10000)]),redirect:'manual',cache:'no-store',headers:{Accept:'application/json','User-Agent':'Mozilla/5.0',[HOP]:'1'}});
+ if(!response.ok){await response.body?.cancel();throw Error('Search relay unavailable')}
+ const body=await response.text();if(body.length>1000000)throw Error('Search relay response too large');
+ const data=JSON.parse(body);if(!Array.isArray(data.items))throw Error('Invalid search relay response');
+ const items=data.items.slice(0,60).flatMap((item:any)=>{
+  if(!item||! /^(wy|qq|kw|kg|mg)_[a-zA-Z0-9_-]{1,100}$/.test(item.id)||typeof item.title!=='string'||typeof item.artist!=='string')return [];
+  let cover='';try{cover=publicHttps(item.cover).href}catch{}
+  const ms=Number(item.durationMs);
+  return [{id:item.id,provider:'at38' as const,title:item.title.slice(0,200),artist:item.artist.slice(0,200),album:typeof item.album==='string'?item.album.slice(0,200):'',cover,duration:typeof item.duration==='string'?item.duration.slice(0,10):'',...(Number.isFinite(ms)&&ms>0&&ms<=86400000?{durationMs:ms}:{})}];
+ });
+ return {items,hasMore:data.hasMore===true};
 }
 
 export async function relayPlayback(params:URLSearchParams,origin:string,signal:AbortSignal){
