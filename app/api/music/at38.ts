@@ -43,13 +43,13 @@ export async function searchAt38(keyword: string, page: number, signal?: AbortSi
   return {items:items.slice((page-1)*20,page*20),hasMore:items.length>page*20};
 }
 
-export async function playAt38(key: string, keyword: string) {
+export async function playAt38(key: string, keyword: string, signal?:AbortSignal) {
   const match = /^(wy|qq|kw|kg|mg)_([a-zA-Z0-9_-]{1,100})$/.exec(key);
   if (!match || !keyword.trim() || keyword.length > 100) throw Error('请重新搜索后播放');
-  const {html,cookie}=await loadSearch(keyword);
+  const {html,cookie}=await loadSearch(keyword,signal);
   const expected=new RegExp('data-id=["\x27]'+match[2]+'["\x27]\\s+data-type=["\x27]'+match[1]+'["\x27]');
   if (!expected.test(html) || !cookie) throw Error('搜索结果已变化，请重新搜索');
-  const r=await fetch(origin+'?'+new URLSearchParams({action:'play',id:match[2],type:match[1]}),{headers:{Cookie:cookie,Referer:origin+'?'+new URLSearchParams({keyword})},redirect:'manual',signal:AbortSignal.timeout(20000)});
+  const r=await fetch(origin+'?'+new URLSearchParams({action:'play',id:match[2],type:match[1]}),{headers:{Cookie:cookie,Referer:origin+'?'+new URLSearchParams({keyword})},redirect:'manual',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(20000)]):AbortSignal.timeout(20000)});
   const location=r.headers.get('location');
   await r.body?.cancel();
   if(r.status===404||r.status===410)throw new PlaybackError('AUDIO_NOT_FOUND','这首歌的音频文件已失效，暂时无法播放。',422);
