@@ -1,8 +1,21 @@
 import type {LyricLine} from '../../lyric-timing';
 export type {LyricLine} from '../../lyric-timing';
 export type Lyrics={lines:LyricLine[];text:string};
+const unavailable=/^(?:暂无歌词|暂无滚动歌词|未找到歌词|无歌词|此歌曲暂无歌词|该歌曲暂无歌词|纯音乐(?:[，,。\s]*请欣赏)?|纯音乐(?:[，,。\s]*敬请欣赏)?|instrumental|no lyrics(?: available)?|lyrics not available)[。.!！\s]*$/i;
+const metadata=/^[-–—•\s]*(?:风格|曲风|BPM|KEY|音名|调号|调式|Beat\s*(?:说明|Maker)|购买(?:伴奏|授权)|伴奏(?:说明|购买)|使用说明)\s*[:：]/i;
+const credit=/^(?:作词|作曲|词|曲|编曲|制作人|制作|混音|母带|录音|监制|出品|发行|版权|策划|封面|词曲|演唱|和声|吉他|贝斯|鼓|钢琴|Lyrics?\s+by|Compos(?:er|ed\s+by)|Arrang(?:er|ed\s+by)|Produc(?:er|ed\s+by)|Written\s+by|Mix(?:ed\s+by)?|Master(?:ed\s+by)?)\s*[:：]/i;
+const providerData=/(?:"(?:c|tx|li|or|t)"\s*:|orpheus:\/\/|https?:\/\/\S*music\.126\.net\/)/i;
+const visibleText=(text:string)=>text.replace(/\[[^\]]*\]|<[^>]*>|\(\d+,\d+,\d+\)/g,'').trim();
+/** Provider notices, beat specifications and credit JSON are not song lyrics. */
+export function cleanLyrics(value:Lyrics):Lyrics{
+ const usable=(text:string)=>{const t=visibleText(text);return !!t&&!unavailable.test(t)&&!metadata.test(t)&&!providerData.test(t)};
+ const lines=value.lines.filter(line=>usable(line.text));
+ const text=(lines.length?lines.map(line=>line.text):value.text.split('\n').filter(usable)).join('\n').trim();
+ if(!text||text.split('\n').every(row=>credit.test(row.trim())))return {lines:[],text:''};
+ return {lines,text};
+}
 export function parseLyrics(raw:string):Lyrics{
- const source=raw.replace(/^\uFEFF/,'').replace(/\r/g,'').trim();const lines:LyricLine[]=[];const gaps:number[]=[];
+ const source=raw.replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(row=>!providerData.test(row)).join('\n').trim();const lines:LyricLine[]=[];const gaps:number[]=[];
  const clean=(s:string)=>s.replace(/<[^>]+>/g,'').trim();
  const seconds=(h:string,m:string,s:string,ms:string)=>Number(h)*3600+Number(m)*60+Number(s)+Number(ms.padEnd(3,'0'))/1000;
  if(/\d+:\d{2}:\d{2}[,.]\d+\s*-->/.test(source)){
@@ -27,5 +40,5 @@ export function parseLyrics(raw:string):Lyrics{
  }
  lines.sort((a,b)=>a.time-b.time);
  gaps.sort((a,b)=>a-b);for(let i=0;i<lines.length;i++){const line=lines[i],gap=gaps.find(time=>time>line.time&&time<(lines[i+1]?.time??Infinity));if(gap!==undefined)line.end=Math.min(line.end??Infinity,gap)}
- return {lines,text:lines.length?lines.map(l=>l.text).join('\n'):source.split('\n').filter(s=>!/^\[(?:ti|ar|al|by|offset|length|re|ve):/i.test(s)).map(clean).join('\n').trim()};
+ return cleanLyrics({lines,text:lines.length?lines.map(l=>l.text).join('\n'):source.split('\n').filter(s=>!/^\[(?:ti|ar|al|by|offset|length|re|ve):/i.test(s)).map(clean).join('\n').trim()});
 }

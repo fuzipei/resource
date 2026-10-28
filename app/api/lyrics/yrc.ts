@@ -1,4 +1,4 @@
-import type {Lyrics,LyricLine} from './parse';
+import {cleanLyrics,type Lyrics,type LyricLine} from './parse';
 /** Public YRC timing: [line start,duration](absolute word start,duration,flag)text. Milliseconds. */
 export function parseYrc(raw:string):Lyrics{
  const lines:LyricLine[]=[];
@@ -10,5 +10,5 @@ export function parseYrc(raw:string):Lyrics{
   if(!words.length||words.some((w,i)=>w.time<start/1000||w.end>w.time+86400||w.end>stop/1000+.05||(i>0&&w.time<words[i-1].time)))continue;
   lines.push({time:start/1000,end:stop/1000,text:words.map(w=>w.text).join(''),words});
  }
- lines.sort((a,b)=>a.time-b.time);return {lines,text:lines.map(line=>line.text).join('\n')};
+ lines.sort((a,b)=>a.time-b.time);return cleanLyrics({lines,text:lines.map(line=>line.text).join('\n')});
 }
