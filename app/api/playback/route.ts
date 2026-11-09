@@ -27,7 +27,14 @@ export async function GET(request:Request){
  const audio=await resolveBuguyy(title,artist,signal);url=audio.url;mime=audio.mime;
  }else{
  let neteaseId=id.startsWith('wy_')?id.slice(3):'';
- if(!neteaseId){const j=await json('https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'search',source:'netease',name:title+' '+artist,count:'20',pages:'1'}),signal);const match=Array.isArray(j)&&j.find((s:any)=>same(title,artist,s.name,(s.artist||[]).join('/')));if(!match)throw Error('No matching version');neteaseId=String(match.id)}
+ if(!neteaseId){
+ // Resolve cross-platform recordings from the official catalog independently of
+ // the audio provider's search availability. Keep live/demo/accompaniment labels.
+ const catalog=await json('https://music.163.com/api/search/get/web?'+new URLSearchParams({s:title+' '+artist,type:'1',limit:'30'}),signal).catch(()=>null);
+ const candidates=(catalog?.result?.songs||[]).filter((s:any)=>same(title,artist,s.name,(s.artists||s.ar||[]).map((a:any)=>a.name).join('/'))&&(!expectedDuration||!s.duration||Math.abs(s.duration/1000-expectedDuration)<=Math.max(3,expectedDuration*.02)));
+ if(candidates.length)neteaseId=String(candidates[0].id);
+ else{const j=await json('https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'search',source:'netease',name:title+' '+artist,count:'20',pages:'1'}),signal);const match=Array.isArray(j)&&j.find((s:any)=>same(title,artist,s.name,(s.artist||[]).join('/')));if(!match)throw Error('No matching version');neteaseId=String(match.id)}
+ }
  // Resolve the exact platform ID; only use search when converting another platform's ID.
  if(expectedDuration<=0){const catalog=await neteaseDurations([neteaseId]);expectedDuration=catalog[neteaseId]/1000||0}
  const j=await json(source==='coco'?'https://cocodownloader.markqq.com/api/url?'+new URLSearchParams({id:neteaseId,provider:'netease',extra:JSON.stringify({selectedLevel:level})}):'https://music-api.gdstudio.xyz/api.php?'+new URLSearchParams({types:'url',source:'netease',id:neteaseId,br:level==='lossless'?'999':'320'}),signal);

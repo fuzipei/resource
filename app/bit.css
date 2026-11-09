@@ -105,3 +105,53 @@
 [data-skin-category=bit] .scene-preview .skin-preview-nav{background:#06102090}
 [data-skin-category=bit] .scene-preview .skin-preview-content{background:#0610204d}
 [data-skin-category=bit] .scene-preview .preview-night{background:#061020cc;color:#eef4ff}
+/* Compact playlist tools follow the pixel skin, including the search surface. */
+[data-skin-category=bit] :is(.playlist-search,.playlist-list-toolbar select,.playlist-batch){border-radius:3px;box-shadow:none}
+
+/* One continuous pixel world, with legible controls laid over the scene. */
+[data-skin-category=bit][data-theme]{--bit-panel:color-mix(in srgb,var(--background) 90%,transparent);--bit-frame-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 10%,transparent),2px 2px 0 #0005;--bit-scene-shade:42%;--bit-scene-position:70% center}
+[data-skin-category=bit][data-theme=light]{--bit-scene-shade:26%}
+[data-skin-category=bit] .music-app{background:var(--background);isolation:isolate}
+[data-skin-category=bit] .music-app:before{background-image:var(--bit-art);background-size:cover;background-position:var(--bit-scene-position);background-repeat:no-repeat;image-rendering:pixelated;opacity:1;filter:none;transform:none}
+[data-skin-category=bit] .music-app:after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--background) 72%,transparent),color-mix(in srgb,var(--background) 24%,transparent) 60%,transparent),linear-gradient(180deg,color-mix(in srgb,var(--background) var(--bit-scene-shade),transparent),transparent 45%,color-mix(in srgb,var(--background) 65%,transparent))}
+[data-skin-category=bit] :is(.music-sidebar,.floating-player,.settings-block,.home-hot,.home-moods,.home-note,.home-shortcuts>button,.global-search,.unified-search,.page-history-controls,.import-panel,.search-panel,.search-sidebar-card){background:var(--bit-panel);backdrop-filter:none;box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] :is(.home-hot,.home-moods,.home-note,.home-shortcuts>button,.global-search,.settings-entry,.page-history-controls){border-image:none;border-color:var(--border)}
+[data-skin-category=bit] .music-sidebar:after{display:none}
+[data-skin-category=bit] .sidebar-bottom{background:none}
+[data-skin-category=bit] .music-topbar{padding:12px 14px;border:1px solid var(--border);border-radius:3px;background:var(--bit-panel);box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] .home-welcome{min-height:320px;border-image:none;border-color:color-mix(in srgb,var(--primary) 50%,var(--border));background:linear-gradient(90deg,color-mix(in srgb,var(--background) 91%,transparent),color-mix(in srgb,var(--background) 58%,transparent) 50%,color-mix(in srgb,var(--background) 8%,transparent));box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] .home-welcome:after{display:none}
+[data-skin-category=bit] .home-welcome-copy>p{color:var(--primary)}
+[data-skin-category=bit] .home-daily-card{background:var(--bit-panel);border-color:var(--border)}
+[data-skin-category=bit] .home-note{background-image:none!important;background-color:var(--bit-panel)}
+[data-skin-category=bit] :is(.home-recommendations,.home-new-releases,.curated-expanded,.playlist-table-wrap,.single-song-list){padding:18px;border:1px solid var(--border);border-radius:3px;background:var(--bit-panel);box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] .playlist-table-wrap{padding:0}
+[data-skin-category=bit] :is(.playlist-hero,.mix-detail,.library-toolbar,.playlist-list-toolbar){padding:18px;border:1px solid var(--border);border-radius:3px;background:var(--bit-panel)}
+[data-skin-category=bit] .playlist-hero{margin-bottom:18px}
+[data-skin-category=bit] .playlist-list-toolbar{padding:10px 14px;gap:10px}
+[data-skin-category=bit] :is(.music-section-title,.curated-heading,.home-attribution,.settings-heading,.settings-footnote){text-shadow:0 1px 3px var(--background)}
+[data-skin-category=bit] .home-playlist-art{box-shadow:1px 1px 0 #0005;border-color:var(--border)}
+[data-skin-category=bit] :is(.home-playlist-card,.home-new-songs>button,.music-row,.playlist-table tr){transition:background-color .15s}
+[data-skin-category=bit] :is(.music-row,.playlist-table tbody tr):hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
+[data-skin-category=bit] .player-main .listening-art{padding:20px;border:1px solid var(--border);border-radius:3px;background:var(--bit-panel);box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] .player-main .lyrics-region{background:var(--bit-panel);border:1px solid var(--border);border-radius:3px;box-shadow:var(--bit-frame-shadow)}
+[data-skin-category=bit] .player-main .lyrics-region .lyrics-panel{border:0;background:none}
+[data-skin-category=bit] .player-main .lyrics-panel>[data-lyric]{opacity:1;color:var(--foreground);text-shadow:0 1px 1px var(--background)}
+[data-skin-category=bit] .player-main .lyrics-panel>[data-lyric].active-lyric{color:var(--primary);font-weight:700}
+[data-skin-category=bit] .lyrics-panel .karaoke-character{color:var(--foreground)}
+[data-skin-category=bit] .lyrics-panel .karaoke-character:after{color:var(--primary)}
+[data-skin-category=bit] .lyrics-panel .lyric-translation{color:var(--secondary);opacity:1}
+[data-skin-category=bit] :is(.lyric-more-trigger,.lyric-follow-status button){border:1px solid var(--border);border-radius:3px;background:var(--popover);color:var(--foreground)}
+[data-skin-category=bit] .floating-player{background:color-mix(in srgb,var(--glass) 96%,transparent)}
+[data-skin-category=bit] :is(.music-sidebar nav button.active,.round-play,.large-play,.music-topbar .music-avatar.login-entry,.home-tabs button[aria-pressed=true]){background:color-mix(in srgb,var(--bit-active) 70%,var(--background));color:var(--foreground)}
+@media(max-width:767px){
+ [data-skin-category=bit][data-theme]{--bit-scene-position:80% center}
+ [data-skin-category=bit] .music-topbar{padding:10px;gap:8px}
+ [data-skin-category=bit] :is(.home-recommendations,.home-new-releases,.curated-expanded,.single-song-list){padding:12px}
+ [data-skin-category=bit] :is(.playlist-hero,.mix-detail,.library-toolbar){padding:14px}
+ [data-skin-category=bit] .playlist-list-toolbar{padding:10px}
+ [data-skin-category=bit] .playlist-tabs{flex-basis:100%;margin-right:0}
+ [data-skin-category=bit] .player-main .listening-art{padding:14px}
+ [data-skin-category=bit] .music-sidebar{background:var(--popover)}
+}
+@media(prefers-reduced-transparency:reduce){[data-skin-category=bit][data-theme]{--bit-panel:var(--background)}}

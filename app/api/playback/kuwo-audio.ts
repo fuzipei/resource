@@ -10,6 +10,7 @@ export async function verifiedKuwoAudio(value:unknown,signal:AbortSignal){
  finally{await reader.cancel().catch(()=>{});}
  if(length>=4&&String.fromCharCode(...first.subarray(0,4))==='fLaC')return {url:url.href,mime:'audio/flac'};
  if(length>=3&&String.fromCharCode(...first.subarray(0,3))==='ID3')return {url:url.href,mime:'audio/mpeg'};
+ if(length>=2&&first[0]===0xff&&(first[1]&0xf6)===0xf0)return {url:url.href,mime:'audio/aac'};
  if(length>=2&&first[0]===0xff&&(first[1]&0xe0)===0xe0)return {url:url.href,mime:'audio/mpeg'};
  throw Error('Unsupported audio format');
 }
