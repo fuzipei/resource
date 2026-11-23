@@ -1,5 +1,6 @@
 import {fetchJsonWithTimeout} from './fetch-with-timeout';
 import {audioFormat} from './audio-quality-options';
+import {playbackSources} from './playback-sources';
 ﻿import type {Song,Quality} from './music-types';
 export type Playback={qualities?:Quality[];error?:string;code?:string;ok:boolean;expectedDuration?:number};
 const cache=new Map<string,{until:number;value:Promise<Playback>}>();
@@ -11,7 +12,7 @@ function probeAudio(url:string,expected:number,signal:AbortSignal):Promise<void>
  const a=new Audio();a.preload='metadata';let finished=false;
  const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(timer);signal.removeEventListener('abort',abort);a.oncanplay=null;a.onloadedmetadata=null;a.onerror=null;a.pause();a.removeAttribute('src');a.load();error?reject(error):resolve()};
  const abort=()=>finish(new Error('Cancelled'));const timer=setTimeout(()=>finish(new Error('Audio timeout')),10000);signal.addEventListener('abort',abort,{once:true});
- a.onerror=()=>finish(new Error('Invalid audio'));a.onloadedmetadata=a.oncanplay=()=>{const d=a.duration;if(!completeDuration(d,expected))finish(new Error('Incomplete or different recording'));else finish()};
+ a.onerror=()=>finish(new Error('Invalid audio'));a.onloadedmetadata=a.oncanplay=()=>{const d=a.duration;if(!Number.isFinite(d)||d<=0)return;if(!completeDuration(d,expected))finish(new Error('Incomplete or different recording'));else finish()};
  if(signal.aborted){abort();return}a.src=url;a.load();
  })}
 // Bound decoded media buffers across normal and lossless probes.
@@ -32,7 +33,7 @@ export function resolvePlayback(song:Song,signal?:AbortSignal):Promise<Playback>
  const durationPromise=known>0?Promise.resolve(known):/^(wy_\d+|qq_[a-zA-Z0-9]+)$/.test(song.id)?fetchJsonWithTimeout('/api/durations?'+new URLSearchParams({ids:song.id}),{cache:'no-store',signal:controller.signal},8000).then(r=>r.data).then((j:any)=>Number(j.durations?.[song.id])/1000||0).catch(()=>0):Promise.resolve(0);
  const params={id:song.id,title:song.title,artist:song.artist,duration:String(known),q:(song.keyword||`${song.title} ${song.artist}`).slice(0,100)};
  let missingDuration=false;
- const jobs=['at38','coco','gd','gequhai','qqmp3','buguyy'].map(async(source,index)=>{
+ const jobs=playbackSources.map(async(source,index)=>{
  await new Promise<void>((resolve,reject)=>{if(controller.signal.aborted){reject(Error('Cancelled'));return}const abort=()=>{clearTimeout(timer);reject(Error('Cancelled'))};const timer=setTimeout(()=>{controller.signal.removeEventListener('abort',abort);resolve()},index*900);controller.signal.addEventListener('abort',abort,{once:true})});
  const r=await fetchJsonWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:controller.signal},18000);const j=r.data as {qualities?:Quality[];expectedDuration?:number};if(!r.ok||!j.qualities?.length)throw Error('No audio');
  for(const quality of j.qualities){if(failed.get(key)?.has(quality.url))continue;try{const expected=known||j.expectedDuration||await durationPromise;if(!Number.isFinite(expected)||expected<=0){missingDuration=true;throw Error('Duration unavailable')}await checkAudio(quality.url,expected,controller.signal);return {ok:true,qualities:[quality],expectedDuration:expected}}catch{if(controller.signal.aborted)throw Error('Cancelled')}}throw Error('No playable audio');
@@ -53,7 +54,8 @@ export async function discoverMp3(song:Song,known:Quality[],signal:AbortSignal,o
  if(seen.size>=2)return;
  const controller=new AbortController(),combined=AbortSignal.any([signal,controller.signal]);
  const params={id:song.id,title:song.title,artist:song.artist,duration:String(expected),q:(song.keyword||`${song.title} ${song.artist}`).slice(0,100)};
- await Promise.allSettled(['at38','coco','gd','gequhai','qqmp3','buguyy'].map(async(source,index)=>{
+ await Promise.allSettled(playbackSources.map(async(source,index)=>{
+  if(known.some(q=>q.detail===source||(source==='at38'&&q.id==='original')))return;
   if(index)await new Promise(resolve=>setTimeout(resolve,index*350));
   if(combined.aborted)return;
   const r=await fetchJsonWithTimeout('/api/playback?'+new URLSearchParams({...params,source}),{signal:combined},18000);

@@ -2,6 +2,8 @@ import {neteaseDurations} from '../durations/catalog';
 import {verifyLossless} from './lossless';
 import {playAt38} from '../music/at38';
 import {resolveGequhai} from './gequhai';
+import {resolveGequbao} from './gequbao';
+import {playbackSources} from '../../playback-sources';
 import {resolveQqmp3} from './qqmp3';
 import {resolveBuguyy} from './buguyy';
 import {playbackRelayOrigin,relayPlayback} from './relay';
@@ -10,7 +12,7 @@ function same(title:string,artist:string,t:string,a:string){return norm(title)==
 async function json(url:string,signal:AbortSignal){const r=await fetch(url,{signal,headers:{Accept:'application/json','User-Agent':'Mozilla/5.0'},cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json() as Promise<any>}
 export async function GET(request:Request){
  const p=new URL(request.url).searchParams,source=p.get('source')||'',id=p.get('id')||'',title=p.get('title')||'',artist=p.get('artist')||'';
- if(!['at38','coco','gd','gequhai','qqmp3','buguyy'].includes(source)||!/^(wy|qq|kw|kg|mg)_[a-zA-Z0-9_-]{1,100}$/.test(id)||!title||!artist||title.length>300||artist.length>300)return Response.json({error:'歌曲信息无效'},{status:400});
+ if(!playbackSources.some(name=>name===source)||!/^(wy|qq|kw|kg|mg)_[a-zA-Z0-9_-]{1,100}$/.test(id)||!title||!artist||title.length>300||artist.length>300)return Response.json({error:'歌曲信息无效'},{status:400});
  const level=p.get('level')||'standard';
  if(!['standard','lossless'].includes(level)||(level==='lossless'&&!['coco','gd'].includes(source)))return Response.json({error:'音质选项无效'},{status:400});
  const signal=AbortSignal.any([request.signal,AbortSignal.timeout(16000)]);
@@ -18,8 +20,14 @@ export async function GET(request:Request){
  const relay=playbackRelayOrigin(request);
  if(relay){try{return Response.json(await relayPlayback(p,relay,signal),{headers:{'Cache-Control':'no-store'}})}catch{signal.throwIfAborted()}}
  let url='',mime='',expectedDuration=Number(p.get('duration'))||0;
- if(source==='at38'){const j=await playAt38(id,(p.get('q')||title+' '+artist).slice(0,100),signal);return Response.json({...j,expectedDuration},{headers:{'Cache-Control':'no-store'}})}
- if(source==='gequhai'){
+ if(source==='at38'){
+ const keyword=(p.get('q')?.trim()||title+' '+artist).slice(0,100);
+ const audio=await playAt38(id,keyword,signal,{title,artist,duration:expectedDuration});
+ return Response.json({...audio,expectedDuration},{headers:{'Cache-Control':'no-store'}})}
+ if(source==='gequbao'){
+ const audio=await resolveGequbao(title,artist,expectedDuration,signal);
+ url=audio.url;mime=audio.mime;expectedDuration=expectedDuration||audio.duration;
+ }else if(source==='gequhai'){
  const audio=await resolveGequhai(title,artist,signal);url=audio.url;mime=audio.mime;
  }else if(source==='qqmp3'){
  const audio=await resolveQqmp3(title,artist,signal);url=audio.url;mime=audio.mime;
@@ -43,7 +51,7 @@ export async function GET(request:Request){
  const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password||u.port||u.hostname==='localhost'||u.hostname.endsWith('.local')||/^[\d.]+$/.test(u.hostname)||u.hostname.includes(':'))throw Error('Invalid audio URL');if(/(?:\/preview\/|preview=1)/i.test(url))throw Error('Preview only');
  if(level==='lossless')mime=await verifyLossless(url,signal);
  if(!mime)mime=u.pathname.endsWith('.flac')?'audio/flac':u.pathname.endsWith('.wav')?'audio/wav':u.pathname.endsWith('.m4a')?'audio/mp4':'audio/mpeg';
- const sourceName=source==='gd'?'GD':source==='coco'?'Coco':source==='qqmp3'?'米兔音乐':source==='buguyy'?'布谷音乐':'歌曲海';
+ const sourceName=source==='gd'?'GD':source==='coco'?'Coco':source==='qqmp3'?'米兔音乐':source==='buguyy'?'布谷音乐':source==='gequbao'?'歌曲宝':'歌曲海';
  return Response.json({qualities:[{id:source+'-'+level,label:(mime==='audio/flac'?'FLAC':mime==='audio/wav'?'WAV':'MP3')+' · '+sourceName,detail:source,url,mime}],expectedDuration},{headers:{'Cache-Control':'no-store'}});
  }catch{return Response.json({error:'此线路暂不可用'},{status:502,headers:{'Cache-Control':'no-store'}})}
 }
