@@ -1,7 +1,10 @@
 import {parseLyrics,type Lyrics} from './parse';
 import {parseYrc} from './yrc';
 import {withTranslations} from './translation';
+import {isNonChineseLyricText} from '../../lyric-timing';
 const empty:Lyrics={lines:[],text:''};const cache=new Map<string,{value:Lyrics;until:number}>();
+const cacheSeconds=(value:Lyrics)=>value.text&&(!isNonChineseLyricText(value.text)||value.lines.some(line=>line.translation))?3600:30;
+const reply=(value:Lyrics)=>Response.json(value,{headers:{'Cache-Control':value.text?`public, max-age=${cacheSeconds(value)}`:'no-store'}});
 const normalize=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 async function json(url:string){const r=await fetch(url,{signal:AbortSignal.timeout(9000)});if(!r.ok)throw Error('Lyrics unavailable');return r.json() as Promise<any>}
 async function native(id:string):Promise<Lyrics>{
@@ -14,7 +17,7 @@ async function native(id:string):Promise<Lyrics>{
   const j=await json('https://music.163.com/api/song/lyric?id='+id.slice(3)+'&lv=1&tv=-1');return withTranslations(parseLyrics(String(j.lrc?.lyric||'')),String(j.tlyric?.lyric||''));
  }
  if(/^qq_[a-zA-Z0-9]{10,30}$/.test(id)){
- const data={req_0:{module:'music.musichallSong.PlayLyricInfo',method:'GetPlayLyricInfo',param:{songMID:id.slice(3)}}};
+ const data={req_0:{module:'music.musichallSong.PlayLyricInfo',method:'GetPlayLyricInfo',param:{songMID:id.slice(3),trans:1,crypt:0,qrc:0}}};
  const j=await json('https://u.y.qq.com/cgi-bin/musicu.fcg?data='+encodeURIComponent(JSON.stringify(data)));const d=j.req_0?.data;
  if(j.req_0?.code!==0||!d?.lyric||d.crypt||d.qrc)return empty;
  const decode=(value:unknown)=>{try{return typeof value==='string'?new TextDecoder().decode(Uint8Array.from(atob(value),c=>c.charCodeAt(0))):''}catch{return ''}};
@@ -25,7 +28,7 @@ export async function GET(request:Request){
  const p=new URL(request.url).searchParams;let id=p.get('id')||'';if(/^\d{1,20}$/.test(id))id='wy_'+id;
  const title=(p.get('title')||'').trim(),artist=(p.get('artist')||'').trim(),album=(p.get('album')||'').trim();const duration=Number(p.get('duration')||0);
  if(id.length>100||title.length>200||artist.length>200||album.length>200||!Number.isFinite(duration)||duration<0||duration>86400||(!id&&(!title||!artist)))return Response.json(empty,{status:400});
- const key=JSON.stringify([id,title,artist,album,duration]);const hit=cache.get(key);if(hit&&hit.until>Date.now())return Response.json(hit.value);
+ const key=JSON.stringify([id,title,artist,album,duration]);const hit=cache.get(key);if(hit&&hit.until>Date.now())return reply(hit.value);
  let result=await native(id).catch(()=>empty);
  if(!result.lines.length&&title&&artist){try{
  const j=await json('https://lrclib.net/api/search?'+new URLSearchParams({track_name:title,artist_name:artist}));
@@ -33,6 +36,6 @@ export async function GET(request:Request){
  candidates.sort((a:any,b:any)=>Number(normalize(b.albumName||'')===normalize(album))-Number(normalize(a.albumName||'')===normalize(album))||(duration?Math.abs((a.duration||duration)-duration)-Math.abs((b.duration||duration)-duration):0));
  let plain=result;for(const c of candidates){const parsed=parseLyrics(String(c.syncedLyrics||c.plainLyrics||''));if(parsed.lines.length){result=parsed;break}if(!plain.text&&parsed.text)plain=parsed}if(!result.lines.length)result=plain;
  }catch{}}
- if(cache.size>=500)cache.delete(cache.keys().next().value!);cache.set(key,{value:result,until:Date.now()+(result.text?3600000:30000)});
- return Response.json(result,{headers:{'Cache-Control':result.text?'public, max-age=3600':'no-store'}});
+ if(cache.size>=500)cache.delete(cache.keys().next().value!);cache.set(key,{value:result,until:Date.now()+cacheSeconds(result)*1000});
+ return reply(result);
 }
